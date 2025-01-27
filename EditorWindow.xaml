@@ -18,7 +18,12 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Button Grid.Column="0" Grid.Row="0" Width="100" HorizontalAlignment="Left" Click="Button_Click">Compile</Button>
-        <TextBox Grid.Column="0" Grid.Row="1" FontFamily="Consolas" AcceptsReturn="True" x:Name="TextBoxFragmentShader" />
+        <RichTextBox Grid.Column="0" Grid.Row= "1"
+                     FontFamily= "Consolas"
+                     AcceptsTab= "True"
+                     AcceptsReturn= "True"
+                     x:Name= "RichTextBoxFragmentShader"
+                     TextChanged= "RichTextBoxFragmentShader_TextChanged" Block.LineHeight= "1" />
         <glWpfControl:GLWpfControl Grid.Column="1" Grid.Row="0" Grid.RowSpan="2" x:Name="OpenTkControl" Render="OpenTkControl_OnRender"/>
     </Grid>
 </Window>
