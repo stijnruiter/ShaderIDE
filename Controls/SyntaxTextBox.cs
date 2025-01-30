@@ -18,6 +18,14 @@ public class SyntaxTextBox : RichTextBox
         TextChanged += SyntaxTextBox_TextChanged;
     }
 
+    public TextRange TextRange => new(Document.ContentStart, Document.ContentEnd);
+
+    public string Text
+    {
+        get => TextRange.Text;
+        set => TextRange.Text = value;
+    }
+
     private void SyntaxTextBox_TextChanged(object sender, TextChangedEventArgs e)
     {
         try
@@ -33,22 +41,10 @@ public class SyntaxTextBox : RichTextBox
         }
     }
 
-    public TextRange TextRange => new(Document.ContentStart, Document.ContentEnd);
-
-    public string Text
-    {
-        get => TextRange.Text;
-        set => TextRange.Text = value;
-    }
-
-    private readonly SolidColorBrush ColorBlack = new(Colors.Black);
-    private readonly SolidColorBrush ColorBlue = new(Colors.Blue);
-    private readonly SolidColorBrush ColorRed = new(Colors.Red);
-
     private void ApplySyntaxHighlighting()
     {
         TextRange textBoxRange = TextRange;
-        textBoxRange.ApplyPropertyValue(TextElement.ForegroundProperty, ColorBlack);
+        textBoxRange.ApplyPropertyValue(TextElement.ForegroundProperty, _colorBlack);
 
         var text = textBoxRange.Text;
         TextPointer startPointer = textBoxRange.Start;
@@ -64,7 +60,7 @@ public class SyntaxTextBox : RichTextBox
                 continue;
             }
 
-            if (GetTokenColor(token) is { } color && GetTextRangeOfToken(startPointer, offset, token.Length) is { } tokenRange)
+            if (GetTokenForegroundColor(token) is { } color && GetTextRangeOfToken(startPointer, offset, token.Length) is { } tokenRange)
             {
                 tokenRange.ApplyPropertyValue(TextElement.ForegroundProperty, color);
                 startPointer = tokenRange.Start;
@@ -81,13 +77,13 @@ public class SyntaxTextBox : RichTextBox
         }
     }
 
-    private SolidColorBrush? GetTokenColor(string token)
+    private static SolidColorBrush? GetTokenForegroundColor(string token)
     {
-        if (KeyWords.Any(s => s.Equals(token, StringComparison.InvariantCultureIgnoreCase)))
-            return ColorBlue;
+        if (_keyWords.Any(s => s.Equals(token, StringComparison.InvariantCultureIgnoreCase)))
+            return _colorBlue;
 
-        if (DataTypes.Any(s => s.Equals(token, StringComparison.InvariantCultureIgnoreCase)))
-            return ColorRed;
+        if (_dataTypes.Any(s => s.Equals(token, StringComparison.InvariantCultureIgnoreCase)))
+            return _colorRed;
 
         return null;
     }
@@ -134,6 +130,10 @@ public class SyntaxTextBox : RichTextBox
         return position;
     }
 
-    private static string[] KeyWords = { "void", "out" };
-    private static string[] DataTypes = { "vec3", "vec4", "int" };
+    private static readonly SolidColorBrush _colorBlack = new(Colors.Black);
+    private static readonly SolidColorBrush _colorBlue = new(Colors.Blue);
+    private static readonly SolidColorBrush _colorRed = new(Colors.Red);
+
+    private static readonly string[] _keyWords = { "void", "out" };
+    private static readonly string[] _dataTypes = { "vec3", "vec4", "int" };
 }
