@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:glWpfControl="clr-namespace:OpenTK.Wpf;assembly=GLWpfControl"
-        xmlns:local="clr-namespace:ShaderIDE"
+        xmlns:local="clr-namespace:ShaderIDE.Controls"
         mc:Ignorable="d"
         Title="Shader Editor" Height="450" Width="800"
         Closed="Window_Closed">
@@ -18,12 +18,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Button Grid.Column="0" Grid.Row="0" Width="100" HorizontalAlignment="Left" Click="Button_Click">Compile</Button>
-        <RichTextBox Grid.Column="0" Grid.Row= "1"
-                     FontFamily= "Consolas"
-                     AcceptsTab= "True"
-                     AcceptsReturn= "True"
-                     x:Name= "RichTextBoxFragmentShader"
-                     TextChanged= "RichTextBoxFragmentShader_TextChanged" Block.LineHeight= "1" />
+        <local:SyntaxTextBox Grid.Column="0" Grid.Row= "1" x:Name="fragmentShaderTextBox" />
         <glWpfControl:GLWpfControl Grid.Column="1" Grid.Row="0" Grid.RowSpan="2" x:Name="OpenTkControl" Render="OpenTkControl_OnRender"/>
     </Grid>
 </Window>
