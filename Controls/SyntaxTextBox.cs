@@ -63,7 +63,7 @@ public class SyntaxTextBox : RichTextBox
     {
         if ((e.Key == Key.Space && e.ModifierPressed(ModifierKeys.Control)) ||
             (e.Key == Key.LeftCtrl && e.KeyboardDevice.IsKeyDown(Key.Space)) ||
-            e.Key.IsAlphaNumeric())
+            (e.Key.IsAlphaNumeric() && !e.ModifierPressed(ModifierKeys.Control)))
         {
             ShowSuggestionBox();
             return;
@@ -74,20 +74,21 @@ public class SyntaxTextBox : RichTextBox
 
         switch (e.Key)
         {
-            case Key.Up:
-                SuggestionItemList.SelectedIndex = (SuggestionItemList.Items.Count + SuggestionItemList.SelectedIndex - 1) % SuggestionItemList.Items.Count;
+            case Key.Up when _isNavigationSuggestionBox:
+                PreviousSuggestion();
                 e.Handled = true;
                 return;
             case Key.Down:
-                SuggestionItemList.SelectedIndex = (SuggestionItemList.SelectedIndex + 1) % SuggestionItemList.Items.Count;
+                NextSuggestion();
                 e.Handled = true;
                 return;
+            case Key.Up:
             case Key.Left:
             case Key.Right:
             case Key.Escape:
-                ClosePopup();
+                CancelSuggestion();
                 return;
-            case Key.Enter:
+            case Key.Enter when _isNavigationSuggestionBox:
             case Key.Tab:
                 ApplySuggestion((string)(SuggestionItemList.SelectedItem ?? SuggestionItemList.Items[0]));
                 e.Handled = true;
@@ -95,21 +96,16 @@ public class SyntaxTextBox : RichTextBox
         };
     }
 
-
-    private void SuggestionItemList_KeyDown(object sender, KeyEventArgs e)
+    private void NextSuggestion()
     {
-        if (!SuggestionBox.IsOpen)
-            return;
+        _isNavigationSuggestionBox = true;
+        SuggestionItemList.SelectedIndex = (SuggestionItemList.SelectedIndex + 1) % SuggestionItemList.Items.Count;
+    }
 
-        switch(e.Key)
-        {
-            case Key.Tab:
-            case Key.Enter:
-                ApplySuggestion((string)SuggestionItemList.SelectedItem);
-                ClosePopup();
-                e.Handled = true;
-                return;
-        }
+    private void PreviousSuggestion()
+    {
+        _isNavigationSuggestionBox = true;
+        SuggestionItemList.SelectedIndex = (SuggestionItemList.Items.Count + SuggestionItemList.SelectedIndex - 1) % SuggestionItemList.Items.Count;
     }
 
     private void SyntaxTextBox_PreviewKeyDown(object sender, KeyEventArgs e)
@@ -119,10 +115,26 @@ public class SyntaxTextBox : RichTextBox
 
         switch (e.Key)
         {
-            case Key.Enter:
             case Key.Tab:
-            case Key.Up:
+            case Key.Enter when _isNavigationSuggestionBox:
+            case Key.Up when _isNavigationSuggestionBox:
             case Key.Down:
+                e.Handled = true;
+                return;
+        }
+    }
+
+    private void SuggestionItemList_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (!SuggestionBox.IsOpen)
+            return;
+
+        switch (e.Key)
+        {
+            case Key.Tab:
+            case Key.Enter:
+                ApplySuggestion((string)SuggestionItemList.SelectedItem);
+                CancelSuggestion();
                 e.Handled = true;
                 return;
         }
@@ -130,17 +142,14 @@ public class SyntaxTextBox : RichTextBox
 
     private void ApplySuggestion(string suggestion)
     {
-        ClosePopup();
-
         var range = GetWordRange(CaretPosition);
         if (range is null)
             return;
            
         range.Text = suggestion;
         CaretPosition = range.End;
-        Focus();
+        CancelSuggestion();
     }
-
 
     private void ApplySyntaxHighlighting()
     {
@@ -231,8 +240,10 @@ public class SyntaxTextBox : RichTextBox
         return position;
     }
 
-    public void ClosePopup()
+    public void CancelSuggestion()
     {
+        _isNavigationSuggestionBox = false;
+        Focus();
         SuggestionBox.IsOpen = false;
         SuggestionItemList.SelectedIndex = 0;
     }
@@ -297,6 +308,8 @@ public class SyntaxTextBox : RichTextBox
         ItemsSource = _keyWords.Concat(_dataTypes),
         Focusable = false
     };
+
+    private bool _isNavigationSuggestionBox = false;
 
     private static readonly SolidColorBrush _colorBlack = new(Colors.Black);
     private static readonly SolidColorBrush _colorBlue = new(Colors.Blue);
