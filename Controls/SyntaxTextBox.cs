@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
-using System.Text.RegularExpressions;
-using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -15,24 +12,11 @@ public class SyntaxTextBox : RichTextBox
 {
     public SyntaxTextBox()
     {
-        SuggestionBox = new Popup()
-        {
-            PlacementTarget = this,
-            Placement = PlacementMode.Bottom,
-            StaysOpen = false,
-            Child = SuggestionItemList,
-            Focusable = false
-        };
-
         AcceptsTab = true;
         AcceptsReturn = true;
         Document.LineHeight = 1;
         FontFamily = new FontFamily("Consolas");
         TextChanged += SyntaxTextBox_TextChanged;
-        PreviewKeyUp += SyntaxTextBox_KeyUp;
-        KeyUp += SyntaxTextBox_KeyUp;
-        PreviewKeyDown += SyntaxTextBox_PreviewKeyDown;
-        SuggestionItemList.KeyDown += SuggestionItemList_KeyDown;
     }
 
     public TextRange TextRange => new(Document.ContentStart, Document.ContentEnd);
@@ -50,105 +34,12 @@ public class SyntaxTextBox : RichTextBox
             TextChanged -= SyntaxTextBox_TextChanged;
             BeginChange();
             ApplySyntaxHighlighting();
-            UpdateSuggestionBoxPosition();
         }
         finally
         {
             EndChange();
             TextChanged += SyntaxTextBox_TextChanged;
         }
-    }
-
-    private void SyntaxTextBox_KeyUp(object sender, KeyEventArgs e)
-    {
-        if ((e.Key == Key.Space && e.ModifierPressed(ModifierKeys.Control)) ||
-            (e.Key == Key.LeftCtrl && e.KeyboardDevice.IsKeyDown(Key.Space)) ||
-            (e.Key.IsAlphaNumeric() && !e.ModifierPressed(ModifierKeys.Control)))
-        {
-            ShowSuggestionBox();
-            return;
-        }
-
-        if (!SuggestionBox.IsOpen)
-            return;
-
-        switch (e.Key)
-        {
-            case Key.Up when _isNavigationSuggestionBox:
-                PreviousSuggestion();
-                e.Handled = true;
-                return;
-            case Key.Down:
-                NextSuggestion();
-                e.Handled = true;
-                return;
-            case Key.Up:
-            case Key.Left:
-            case Key.Right:
-            case Key.Escape:
-                CancelSuggestion();
-                return;
-            case Key.Enter when _isNavigationSuggestionBox:
-            case Key.Tab:
-                ApplySuggestion((string)(SuggestionItemList.SelectedItem ?? SuggestionItemList.Items[0]));
-                e.Handled = true;
-                return;
-        };
-    }
-
-    private void NextSuggestion()
-    {
-        _isNavigationSuggestionBox = true;
-        SuggestionItemList.SelectedIndex = (SuggestionItemList.SelectedIndex + 1) % SuggestionItemList.Items.Count;
-    }
-
-    private void PreviousSuggestion()
-    {
-        _isNavigationSuggestionBox = true;
-        SuggestionItemList.SelectedIndex = (SuggestionItemList.Items.Count + SuggestionItemList.SelectedIndex - 1) % SuggestionItemList.Items.Count;
-    }
-
-    private void SyntaxTextBox_PreviewKeyDown(object sender, KeyEventArgs e)
-    {
-        if (!SuggestionBox.IsOpen)
-            return;
-
-        switch (e.Key)
-        {
-            case Key.Tab:
-            case Key.Enter when _isNavigationSuggestionBox:
-            case Key.Up when _isNavigationSuggestionBox:
-            case Key.Down:
-                e.Handled = true;
-                return;
-        }
-    }
-
-    private void SuggestionItemList_KeyDown(object sender, KeyEventArgs e)
-    {
-        if (!SuggestionBox.IsOpen)
-            return;
-
-        switch (e.Key)
-        {
-            case Key.Tab:
-            case Key.Enter:
-                ApplySuggestion((string)SuggestionItemList.SelectedItem);
-                CancelSuggestion();
-                e.Handled = true;
-                return;
-        }
-    }
-
-    private void ApplySuggestion(string suggestion)
-    {
-        var range = GetWordRange(CaretPosition);
-        if (range is null)
-            return;
-           
-        range.Text = suggestion;
-        CaretPosition = range.End;
-        CancelSuggestion();
     }
 
     private void ApplySyntaxHighlighting()
@@ -239,77 +130,6 @@ public class SyntaxTextBox : RichTextBox
 
         return position;
     }
-
-    public void CancelSuggestion()
-    {
-        _isNavigationSuggestionBox = false;
-        Focus();
-        SuggestionBox.IsOpen = false;
-        SuggestionItemList.SelectedIndex = 0;
-    }
-
-    public void ShowSuggestionBox()
-    {
-        UpdateSuggestionBoxPosition();
-        SuggestionBox.IsOpen = !SuggestionBox.PlacementRectangle.IsEmpty;
-    }
-
-    public void UpdateSuggestionBoxPosition()
-    {
-        SuggestionBox.PlacementRectangle = ComputePopupPlacement(CaretPosition);
-    }
-
-    private static Rect ComputePopupPlacement(TextPointer caret) 
-        => GetWordRange(caret)?.Start?.GetCharacterRect(LogicalDirection.Backward) ?? Rect.Empty;
-
-    private static TextRange? GetWordRange(TextPointer caret)
-    {
-        if (caret is null) 
-            return null;
-
-        var leftPointer = GetTextPointerOfLastAlphaNumeric(caret, LogicalDirection.Backward);
-        var rightPointer = GetTextPointerOfLastAlphaNumeric(caret, LogicalDirection.Forward);
-        return new TextRange(leftPointer, rightPointer);
-    }
-
-    private static TextPointer GetTextPointerOfLastAlphaNumeric(TextPointer caret, LogicalDirection direction)
-    {
-        if (caret.GetLineStartPosition((int)direction) is not { } lineEnd)
-            return caret;
-                
-        var wordEdge = caret;
-        char[] textbuffer = new char[1];
-        while(true)
-        {
-            if (wordEdge is null || lineEnd.CompareTo(wordEdge) != (int)direction * 2 - 1) // The caret passed the next line
-            {
-                wordEdge = lineEnd;
-                break;
-            }
-
-            wordEdge.GetTextInRun(direction, textbuffer, 0, 1);
-            if (!char.IsLetterOrDigit(textbuffer[0]) && textbuffer[0] != '\0')
-                break;
-
-            wordEdge = wordEdge.GetNextInsertionPosition(direction);
-        }
-
-        // For some reason, it sometimes happens that there is still a non-alphanumeric character..
-        var wordRange = new TextRange(wordEdge, caret);
-        var regexDirection = direction == LogicalDirection.Forward ? RegexOptions.RightToLeft : RegexOptions.None;
-        var match = Regex.Match(wordRange.Text, "[^a-zA-Z0-9]", regexDirection);
-        return match.Success ? wordRange.Start.GetPositionAtOffset(match.Index) ?? wordEdge : wordEdge;
-    }
-
-    private readonly Popup SuggestionBox;
-    private readonly ListBox SuggestionItemList = new ListBox()
-    {
-        Foreground = Brushes.Black,
-        ItemsSource = _keyWords.Concat(_dataTypes),
-        Focusable = false
-    };
-
-    private bool _isNavigationSuggestionBox = false;
 
     private static readonly SolidColorBrush _colorBlack = new(Colors.Black);
     private static readonly SolidColorBrush _colorBlue = new(Colors.Blue);
