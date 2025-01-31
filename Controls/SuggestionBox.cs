@@ -1,4 +1,6 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
@@ -32,6 +34,8 @@ internal class SuggestionBox : Popup
         List.PreviewKeyDown += List_PreviewKeyDown;
     }
 
+    public ListBox List { get; }
+
     [Bindable(true)]
     public RichTextBox TargetTextBox
     {
@@ -51,16 +55,15 @@ internal class SuggestionBox : Popup
         if (e.OldValue is RichTextBox oldTextBox)
         {
             oldTextBox.TextChanged -= suggestionBox.ParentTarget_TextChanged;
-            oldTextBox.PreviewKeyDown -= suggestionBox.ParentTarget_PreviewKeyDown;
+            oldTextBox.PreviewKeyDown -= suggestionBox.ParentTarget_KeyDown;
             oldTextBox.PreviewKeyUp -= suggestionBox.ParentTarget_KeyUp;
-            oldTextBox.KeyUp -= suggestionBox.ParentTarget_KeyUp;
         }
         if (e.NewValue is RichTextBox newTextBox)
         {
             newTextBox.TextChanged += suggestionBox.ParentTarget_TextChanged;
-            newTextBox.PreviewKeyDown += suggestionBox.ParentTarget_PreviewKeyDown;
+            newTextBox.PreviewKeyDown += suggestionBox.ParentTarget_KeyDown;
             newTextBox.PreviewKeyUp += suggestionBox.ParentTarget_KeyUp;
-            newTextBox.KeyUp += suggestionBox.ParentTarget_KeyUp;
+
             suggestionBox.SetValue(PlacementTargetProperty, newTextBox);
         }
     }
@@ -80,23 +83,7 @@ internal class SuggestionBox : Popup
         }
     }
 
-    private void ParentTarget_PreviewKeyDown(object sender, KeyEventArgs e)
-    {
-        if (!IsOpen)
-            return;
-
-        switch (e.Key)
-        {
-            case Key.Tab:
-            case Key.Enter when _isNavigating:
-            case Key.Up when _isNavigating:
-            case Key.Down:
-                e.Handled = true;
-                return;
-        }
-    }
-
-    private void ParentTarget_KeyUp(object sender, KeyEventArgs e)
+    private void ParentTarget_KeyDown(object sender, KeyEventArgs e)
     {
         if ((e.Key == Key.Space && e.ModifierPressed(ModifierKeys.Control)) ||
             (e.Key == Key.LeftCtrl && e.KeyboardDevice.IsKeyDown(Key.Space)) ||
@@ -133,7 +120,7 @@ internal class SuggestionBox : Popup
         };
     }
 
-    private void ParentTarget_KeyDown(object sender, KeyEventArgs e)
+    private void ParentTarget_KeyUp(object sender, KeyEventArgs e)
     {
         if (!IsOpen)
             return;
@@ -154,37 +141,17 @@ internal class SuggestionBox : Popup
         UpdatePosition();
     }
 
-    private void SuggestionBox_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
-    {
-        if (!IsOpen)
-            return;
-
-        switch (e.Key)
-        {
-            case Key.Up when _isNavigating:
-            case Key.Down:
-                e.Handled = true;
-                return;
-            case Key.Tab:
-            case Key.Enter:
-                ApplySuggestion((string)List.SelectedItem);
-                e.Handled = true;
-                return;
-        }
-    }
-
     public void ApplySuggestion()
     {
         ApplySuggestion((string)List.SelectedValue ?? string.Empty);
     }
-
 
     public void ApplySuggestion(string suggestion)
     {
         if (TargetTextBox is null)
             return;
 
-        var range = GetWordRange(TargetTextBox.CaretPosition);
+        var range = GetWordAtTextPosition(TargetTextBox.CaretPosition);
         if (range is null)
             return;
 
@@ -213,7 +180,8 @@ internal class SuggestionBox : Popup
 
     public void UpdatePosition()
     {
-        PlacementRectangle = ComputePopupPlacement(TargetTextBox?.CaretPosition);
+        var currentWordStartPosition = GetWordAtTextPosition(TargetTextBox?.CaretPosition)?.Start;
+        PlacementRectangle = currentWordStartPosition?.GetCharacterRect(LogicalDirection.Backward) ?? Rect.Empty;
     }
 
     public void Cancel()
@@ -224,24 +192,21 @@ internal class SuggestionBox : Popup
         TargetTextBox?.Focus();
     }
 
-    private static Rect ComputePopupPlacement(TextPointer? caret)
-        => GetWordRange(caret)?.Start?.GetCharacterRect(LogicalDirection.Backward) ?? Rect.Empty;
-
-    private static TextRange? GetWordRange(TextPointer? caret)
+    private static TextRange? GetWordAtTextPosition(TextPointer? caret)
     {
         if (caret is null)
             return null;
 
-        var leftPointer = GetTextPointerOfLastAlphaNumeric(caret, LogicalDirection.Backward);
-        var rightPointer = GetTextPointerOfLastAlphaNumeric(caret, LogicalDirection.Forward);
+        var leftPointer = GetTextPositionOfLastAlphaNumeric(caret, LogicalDirection.Backward);
+        var rightPointer = GetTextPositionOfLastAlphaNumeric(caret, LogicalDirection.Forward);
         return new TextRange(leftPointer, rightPointer);
     }
 
-    private static TextPointer GetTextPointerOfLastAlphaNumeric(TextPointer caret, LogicalDirection direction)
+    private static TextPointer GetTextPositionOfLastAlphaNumeric(TextPointer caret, LogicalDirection direction)
     {
         if (caret.GetLineStartPosition((int)direction) is not { } lineEnd)
             return caret;
-
+        Debug.Assert(caret.IsAtInsertionPosition);
         var wordEdge = caret;
         char[] textbuffer = new char[1];
         while (true)
@@ -261,11 +226,12 @@ internal class SuggestionBox : Popup
 
         // For some reason, it sometimes happens that there is still a non-alphanumeric character..
         var wordRange = new TextRange(wordEdge, caret);
-        var regexDirection = direction == LogicalDirection.Forward ? RegexOptions.RightToLeft : RegexOptions.None;
+        var regexDirection = direction == LogicalDirection.Forward ? RegexOptions.None : RegexOptions.RightToLeft;
         var match = Regex.Match(wordRange.Text, "[^a-zA-Z0-9]", regexDirection);
-        return match.Success ? wordRange.Start.GetPositionAtOffset(match.Index) ?? wordEdge : wordEdge;
+        return match.Success
+            ? wordRange.Start.GetPositionAtOffset(match.Index + (direction == LogicalDirection.Backward ? 1 : 0)) ?? wordEdge
+            : wordEdge;
     }
     
-    public ListBox List { get; }
     private bool _isNavigating = false;
 }
