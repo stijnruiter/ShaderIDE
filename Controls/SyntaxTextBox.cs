@@ -117,7 +117,6 @@ public class SyntaxTextBox : RichTextBox
         if (!SuggestionBox.IsOpen)
             return;
 
-
         switch (e.Key)
         {
             case Key.Enter:
@@ -252,61 +251,43 @@ public class SyntaxTextBox : RichTextBox
     private static Rect ComputePopupPlacement(TextPointer caret) 
         => GetWordRange(caret)?.Start?.GetCharacterRect(LogicalDirection.Backward) ?? Rect.Empty;
 
-    private static TextPointer Clamp(TextPointer pointer, TextPointer left, TextPointer right)
-    {
-        Debug.Assert(left.CompareTo(right) <= 0);
-
-        if (pointer.CompareTo(left) < 0)
-            return left;
-
-        if (pointer.CompareTo(right) > 0)
-            return pointer;
-        
-        return pointer;
-    }
-
     private static TextRange? GetWordRange(TextPointer caret)
     {
         if (caret is null) 
             return null;
 
-        var lineStart = caret.GetLineStartPosition(0) ?? caret;
-        var lineEnd = caret.GetLineStartPosition(1) ?? caret;
-        var leftPointer = GetTextPointerOfLastAlphaNumeric(caret, LogicalDirection.Backward) ?? caret;
-        var rightPointer = GetTextPointerOfLastAlphaNumeric(caret, LogicalDirection.Forward) ?? caret;
-
-        leftPointer  = Clamp(leftPointer,  lineStart, lineEnd);
-        rightPointer = Clamp(rightPointer, lineStart, lineEnd);
-
-        // For some reason, it sometimes happens that there is still a non-alphanumeric character..
-        var match = Regex.Match(new TextRange(leftPointer, caret).Text, "[^a-zA-Z0-9]", RegexOptions.RightToLeft);
-        if (match.Success)
-        {
-            leftPointer = leftPointer.GetPositionAtOffset(match.Index) ?? leftPointer;
-        }
-
-         match = Regex.Match(new TextRange(caret, rightPointer).Text, "[^a-zA-Z0-9]");
-        if (match.Success)
-        {
-            rightPointer = caret.GetPositionAtOffset(match.Index) ?? rightPointer;
-        }
-
+        var leftPointer = GetTextPointerOfLastAlphaNumeric(caret, LogicalDirection.Backward);
+        var rightPointer = GetTextPointerOfLastAlphaNumeric(caret, LogicalDirection.Forward);
         return new TextRange(leftPointer, rightPointer);
     }
 
-    private static TextPointer? GetTextPointerOfLastAlphaNumeric(TextPointer caret, LogicalDirection direction)
+    private static TextPointer GetTextPointerOfLastAlphaNumeric(TextPointer caret, LogicalDirection direction)
     {
-        if (caret is null)
-            return null;
-
+        if (caret.GetLineStartPosition((int)direction) is not { } lineEnd)
+            return caret;
+                
+        var wordEdge = caret;
         char[] textbuffer = new char[1];
-        do
+        while(true)
         {
-            caret.GetTextInRun(direction, textbuffer, 0, 1);
-            caret = caret.GetNextInsertionPosition(direction);
+            if (wordEdge is null || lineEnd.CompareTo(wordEdge) != (int)direction * 2 - 1) // The caret passed the next line
+            {
+                wordEdge = lineEnd;
+                break;
+            }
+
+            wordEdge.GetTextInRun(direction, textbuffer, 0, 1);
+            if (!char.IsLetterOrDigit(textbuffer[0]) && textbuffer[0] != '\0')
+                break;
+
+            wordEdge = wordEdge.GetNextInsertionPosition(direction);
         }
-        while ((char.IsLetterOrDigit(textbuffer[0]) || textbuffer[0] == '\0') && caret != null);
-        return caret?.GetNextInsertionPosition(direction.Reversed());
+
+        // For some reason, it sometimes happens that there is still a non-alphanumeric character..
+        var wordRange = new TextRange(wordEdge, caret);
+        var regexDirection = direction == LogicalDirection.Forward ? RegexOptions.RightToLeft : RegexOptions.None;
+        var match = Regex.Match(wordRange.Text, "[^a-zA-Z0-9]", regexDirection);
+        return match.Success ? wordRange.Start.GetPositionAtOffset(match.Index) ?? wordEdge : wordEdge;
     }
 
     private readonly Popup SuggestionBox;
