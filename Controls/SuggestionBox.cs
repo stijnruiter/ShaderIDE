@@ -23,7 +23,8 @@ internal class SuggestionBox : Popup
                 "test",
                 "tes2",
                 "test3"
-            }
+            },
+            SelectedIndex = 0
         };
 
         Placement = PlacementMode.Bottom;
@@ -86,7 +87,6 @@ internal class SuggestionBox : Popup
     private void ParentTarget_KeyDown(object sender, KeyEventArgs e)
     {
         if ((e.Key == Key.Space && e.ModifierPressed(ModifierKeys.Control)) ||
-            (e.Key == Key.LeftCtrl && e.KeyboardDevice.IsKeyDown(Key.Space)) ||
             (e.Key.IsAlphaNumeric() && !e.ModifierPressed(ModifierKeys.Control)))
         {
             Show();
@@ -114,7 +114,7 @@ internal class SuggestionBox : Popup
                 return;
             case Key.Enter when _isNavigating:
             case Key.Tab:
-                ApplySuggestion((string)(List.SelectedItem ?? string.Empty));
+                ApplySuggestion();
                 e.Handled = true;
                 return;
         };
@@ -143,7 +143,10 @@ internal class SuggestionBox : Popup
 
     public void ApplySuggestion()
     {
-        ApplySuggestion((string)List.SelectedValue ?? string.Empty);
+        if (List.Items.Count == 0 || List.SelectedIndex < 0)
+            ApplySuggestion(string.Empty);
+
+        ApplySuggestion((string)List.SelectedValue);
     }
 
     public void ApplySuggestion(string suggestion)
