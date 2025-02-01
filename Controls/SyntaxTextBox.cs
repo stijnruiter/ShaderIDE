@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows.Controls;
@@ -45,7 +46,7 @@ public class SyntaxTextBox : RichTextBox
     private void ApplySyntaxHighlighting()
     {
         TextRange textBoxRange = TextRange;
-        textBoxRange.ApplyPropertyValue(TextElement.ForegroundProperty, _colorBlack);
+        textBoxRange.ApplyPropertyValue(TextElement.ForegroundProperty, ColorScheme[TokenType.None]);
 
         var text = textBoxRange.Text;
         TextPointer startPointer = textBoxRange.Start;
@@ -55,15 +56,16 @@ public class SyntaxTextBox : RichTextBox
         for (var index = 0; index < text.Length; index++)
         {
             char nextChar = text[index];
-            if (char.IsLetterOrDigit(nextChar))
+            if (char.IsLetterOrDigit(nextChar) || nextChar == '_')
             {
                 token += nextChar;
                 continue;
             }
 
-            if (GetTokenForegroundColor(token) is { } color && GetTextRangeOfToken(startPointer, offset, token.Length) is { } tokenRange)
+            var tokenType = GetTokenType(token);
+            if (tokenType != TokenType.None && GetTextRangeOfToken(startPointer, offset, token.Length) is { } tokenRange)
             {
-                tokenRange.ApplyPropertyValue(TextElement.ForegroundProperty, color);
+                tokenRange.ApplyPropertyValue(TextElement.ForegroundProperty, ColorScheme[tokenType]);
                 startPointer = tokenRange.Start;
                 offset = 0;
             }
@@ -78,16 +80,16 @@ public class SyntaxTextBox : RichTextBox
         }
     }
 
-    private static SolidColorBrush? GetTokenForegroundColor(string token)
+    private static TokenType GetTokenType(string token)
     {
-        if (_keyWords.Any(s => s.Equals(token, StringComparison.InvariantCultureIgnoreCase)))
-            return _colorBlue;
-
-        if (_dataTypes.Any(s => s.Equals(token, StringComparison.InvariantCultureIgnoreCase)))
-            return _colorRed;
-
-        return null;
+        foreach(var (type, values) in SyntaxMapping.OpenGL.Tokens)
+        {
+            if (values.Contains(token))
+                return type;
+        }
+        return TokenType.None;
     }
+
 
     private static TextRange GetTextRangeOfToken(TextPointer startPointer, int offset, int characterCount)
     {
@@ -131,8 +133,20 @@ public class SyntaxTextBox : RichTextBox
         return position;
     }
 
-    private static readonly SolidColorBrush _colorBlack = new(Colors.Black);
+    internal static readonly IReadOnlyDictionary<TokenType, SolidColorBrush> ColorScheme = new Dictionary<TokenType, SolidColorBrush>
+    {
+        {TokenType.None, new SolidColorBrush(Colors.Black) },
+        {TokenType.Keyword, new SolidColorBrush(Colors.Blue) },
+        {TokenType.DataType, new SolidColorBrush(Colors.Brown) },
+        {TokenType.SpecialVariable, new SolidColorBrush(Colors.YellowGreen) },
+        {TokenType.IntrinsicMethod, new SolidColorBrush(Colors.Red) },
+    };
+
+
+    private static readonly SolidColorBrush _color = new(Colors.Black);
     private static readonly SolidColorBrush _colorBlue = new(Colors.Blue);
+    private static readonly SolidColorBrush _colorGray = new(Colors.Blue);
+    private static readonly SolidColorBrush _colorGren = new(Colors.Green);
     private static readonly SolidColorBrush _colorRed = new(Colors.Red);
 
     private static readonly string[] _keyWords = { "void", "out" };

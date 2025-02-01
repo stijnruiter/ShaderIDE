@@ -1,5 +1,4 @@
 ﻿using OpenTK.Wpf;
-using ShaderIDE.Controls;
 using ShaderIDE.Render;
 using System;
 using System.Windows;
@@ -17,7 +16,7 @@ public partial class EditorWindow : Window
             MinorVersion = 3
         });
         fragmentShaderTextBox.Text = Shader.DefaultFragmentShader;
-        _canvas = new RenderCanvas();   
+        _canvas = new RenderCanvas();
     }
 
     private void OpenTkControl_OnRender(TimeSpan delta)
@@ -35,6 +34,8 @@ public partial class EditorWindow : Window
     {
         _canvas.Dispose();
     }
+
+    internal SyntaxMapping Syntax { get; }
 
     private readonly RenderCanvas _canvas;
 }

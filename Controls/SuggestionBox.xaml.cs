@@ -26,14 +26,7 @@ public partial class SuggestionBox : Popup
             ItemsSource = Suggestions,
             SelectedIndex = 0
         };
-        AllItems.AddRange(
-        [
-            "void",
-            "vec3",
-            "vec4",
-            "int",
-            "FragColor",
-        ]);
+        AllItems = SyntaxMapping.OpenGL.Tokens.Values.SelectMany(x => x).ToList();
         Placement = PlacementMode.Bottom;
         StaysOpen = false;
         Child = List;
@@ -206,9 +199,13 @@ public partial class SuggestionBox : Popup
     public void FilterList(string word)
     {
         Suggestions.Clear();
-        foreach (var filtered in AllItems.Where(item => item.Contains(word)))
+        foreach (var filtered in AllItems.Where(item => item.Contains(word, System.StringComparison.InvariantCultureIgnoreCase)).Take(25))
         {
             Suggestions.Add(filtered);
+        }
+        if (!Suggestions.Contains(List.SelectedItem))
+        {
+            List.SelectedIndex = 0;
         }
     }
 
@@ -248,7 +245,7 @@ public partial class SuggestionBox : Popup
             }
 
             wordEdge.GetTextInRun(direction, textbuffer, 0, 1);
-            if (!char.IsLetterOrDigit(textbuffer[0]) && textbuffer[0] != '\0')
+            if (!char.IsLetterOrDigit(textbuffer[0]) && textbuffer[0] != '\0' && textbuffer[0] != '_')
                 break;
 
             wordEdge = wordEdge.GetNextInsertionPosition(direction);
@@ -257,7 +254,7 @@ public partial class SuggestionBox : Popup
         // For some reason, it sometimes happens that there is still a non-alphanumeric character..
         var wordRange = new TextRange(wordEdge, caret);
         var regexDirection = direction == LogicalDirection.Forward ? RegexOptions.None : RegexOptions.RightToLeft;
-        var match = Regex.Match(wordRange.Text, "[^a-zA-Z0-9]", regexDirection);
+        var match = Regex.Match(wordRange.Text, "[^a-zA-Z0-9_]", regexDirection);
         return match.Success
             ? wordRange.Start.GetPositionAtOffset(match.Index + (direction == LogicalDirection.Backward ? 1 : 0)) ?? wordEdge
             : wordEdge;

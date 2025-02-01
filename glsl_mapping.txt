@@ -1,0 +1,69 @@
+## GLSL 4.5 
+# https://docs.gl/sl4/{method}
+
+# IntrinsicMethod
+acos acosh asin asinh atan atanh cos cosh degrees radians sin sinh tan tanh
+abs ceil clamp dFdx dFdy exp exp2 floor floor fma fract fwidth inversesqrt isinf isnan log log2 max min mix mod modf noise pow round roundEven sign smoothstep sqrt step trunc
+floatBitsToInt frexp intBitsToFloat ldexp packDouble2x32 packHalf2x16 packUnorm unpackDouble2x32 unpackHalf2x16 unpackUnorm
+cross distance dot equal faceforward length normalize notEqual reflect refract
+all any greaterThan greaterThanEqual lessThan lessThanEqual not
+EmitStreamVertex EmitVertex EndPrimitive EndStreamPrimitive
+interpolateAtCentroid interpolateAtOffset interpolateAtSample texelFetch texelFetchOffset texture textureGather textureGatherOffset textureGatherOffsets textureGrad textureGradOffset textureLod textureLodOffset textureOffset textureProj textureProjGrad textureProjGradOffset textureProjLod textureProjLodOffset textureProjOffset textureQueryLevels textureQueryLod textureSamples textureSize
+determinant groupMemoryBarrier inverse matrixCompMult outerProduct transpose
+bitCount bitfieldExtract bitfieldInsert bitfieldReverse findLSB findMSB uaddCarry umulExtended usubBorrow
+imageAtomicAdd imageAtomicAnd imageAtomicCompSwap imageAtomicExchange imageAtomicMax imageAtomicMin imageAtomicOr imageAtomicXor imageLoad imageSamples imageSize imageStore
+atomicAdd atomicAnd atomicCompSwap atomicCounter atomicCounterDecrement atomicCounterIncrement atomicExchange atomicMax atomicMin atomicOr atomicXor
+barrier groupMemoryBarrier memoryBarrier memoryBarrierAtomicCounter memoryBarrierBuffer memoryBarrierImage memoryBarrierShared
+
+# SpecialVariable
+gl_ClipDistance gl_CullDistance gl_FragCoord gl_FragDepth gl_FrontFacing gl_GlobalInvocationID gl_HelperInvocation gl_InstanceID gl_InvocationID gl_Layer gl_LocalInvocationID gl_LocalInvocationIndex gl_NumSamples gl_NumWorkGroups gl_PatchVerticesIn gl_PointCoord gl_PointSize gl_Position gl_PrimitiveID gl_PrimitiveIDIn gl_SampleID gl_SampleMask gl_SampleMaskIn gl_SamplePosition gl_TessCoord gl_TessLevelInner gl_TessLevelOuter gl_VertexID gl_ViewportIndex gl_WorkGroupID gl_WorkGroupSize
+
+# Keyword
+active asm attribute break case cast centroid class common const continue default discard do else enum extern external false filter fixed flat for foreach goto highp if in inline inout input interface invariant layout lowp mediump namespace noinline noperspective out output packed partition patch precision public return row_major sample sizeof smooth static struct subroutine superp switch template this true typedef uniform union using varying volatile while false true shared readonly writeonly coherent volatile restrict
+
+# DataType
+## https://www.khronos.org/opengl/wiki/Data_Type_(GLSL)
+bool int uint float double half long short unsigned void buffer
+
+bvec2 bvec3 bvec4 
+ivec2 ivec3 ivec4 
+uvec2 uvec3 uvec4 
+vec2 vec3 vec4 
+dvec2 dvec3 dvec4
+hvec2 hvec3 hvec4
+
+mat2 mat3 mat4 
+mat2x2 mat2x3 mat2x4 
+mat3x2 mat3x3 mat3x4 
+mat4x2 mat4x3 mat4x4 
+
+dmat2 dmat3 dmat4
+dmat2x2 dmat2x3 dmat2x4 
+dmat3x2 dmat3x3 dmat3x4 
+dmat4x2 dmat4x3 dmat4x4 
+
+isampler1D isampler1DArray 
+isampler2D isampler2DArray 
+isampler2DMS isampler2DMSArray 
+isampler2DRect isampler3D 
+isamplerBuffer isamplerCube 
+isamplerCubeArray 
+
+sampler1D sampler1DArray 
+sampler1DArrayShadow sampler1DShadow 
+sampler2D sampler2DArray 
+sampler2DArrayShadow sampler2DMS 
+sampler2DMSArray sampler2DRect 
+sampler2DRectShadow sampler2DShadow sampler3D 
+sampler3DRect samplerBuffer samplerCube 
+samplerCubeArray samplerCubeArrayShadow 
+samplerCubeShadow 
+
+usampler1D usampler1DArray 
+usampler2D usampler2DArray 
+usampler2DMS usampler2DMSArray 
+usampler2DRect usampler3D 
+usamplerBuffer usamplerCube 
+usamplerCubeArray 
+
+image2D uimage2D imageCube 
