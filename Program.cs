@@ -1,16 +1,32 @@
-﻿using System;
+﻿using ShaderIDE.Data;
+using System;
+using System.Configuration;
+using System.IO;
+using System.Reflection;
+using System.Text.Json;
 using System.Windows;
 
 namespace ShaderIDE;
 
 internal class Program
 {
+
     [STAThread]
     public static void Main()
     {
-        var app = new Application();
-        app.MainWindow = new EditorWindow();
-        app.MainWindow.Show();
-        app.Run();
+        var preferences = PreferenceLoader.Load();
+        var colorSchemeManager = new ColorSchemeManager(preferences);
+        try
+        {
+            var app = new Application();
+            app.MainWindow = new EditorWindow(preferences, colorSchemeManager);
+            app.MainWindow.Show();
+            app.Run();
+        }
+        finally
+        {
+            PreferenceLoader.Save(preferences);
+        }
     }
+
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ShaderIDE.Data;
+using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
@@ -129,7 +130,7 @@ public class SyntaxTextBox : RichTextBox
         if (token.StartsWith("//") || token.StartsWith("#"))
             return TokenType.Comments;
 
-        foreach(var (type, values) in SyntaxMapping.OpenGL.Tokens)
+        foreach(var (type, values) in SyntaxMapLoader.OpenGL.Tokens)
         {
             if (values.Contains(token))
                 return type;

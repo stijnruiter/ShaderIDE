@@ -4,26 +4,19 @@ using System.Windows;
 using System.Linq;
 using System;
 
-namespace ShaderIDE;
+namespace ShaderIDE.Data;
 
 public class ColorSchemeManager : DependencyObject
 {
-    private ColorSchemeManager()
+    public ColorSchemeManager(Preferences preferences)
     {
-        Configuration = Configuration.Load();
-        SetScheme(Configuration.ColorScheme);
+        Preferences = preferences;
+        SetScheme();
     }
 
-    static ColorSchemeManager()
+    public void SetScheme()
     {
-        Instance = new ColorSchemeManager();
-    }
-
-    public static ColorSchemeManager Instance { get; private set; }
-
-    public void SetScheme(string name)
-    {
-        var scheme = ColorSchemes.SingleOrDefault(c => c.Name.Equals(name, System.StringComparison.InvariantCultureIgnoreCase));
+        var scheme = ColorSchemes.SingleOrDefault(c => c.Name.Equals(Preferences.ColorScheme, StringComparison.InvariantCultureIgnoreCase));
         if (scheme != null)
         {
             Current = scheme;
@@ -39,8 +32,7 @@ public class ColorSchemeManager : DependencyObject
     private static void OnCurrentColorSchemChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         var manager = (ColorSchemeManager)d;
-        manager.Configuration.ColorScheme = manager.Current.Name;
-        manager.Configuration.Save();
+        manager.Preferences.ColorScheme = manager.Current.Name;
     }
 
     public ColorScheme Current
@@ -88,6 +80,6 @@ public class ColorSchemeManager : DependencyObject
 
     public readonly static ColorScheme Default = new();
 
-    public readonly Configuration Configuration;
+    public readonly Preferences Preferences;
 }
 

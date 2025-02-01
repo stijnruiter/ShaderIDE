@@ -1,5 +1,6 @@
 ﻿using Microsoft.Win32;
 using OpenTK.Wpf;
+using ShaderIDE.Data;
 using ShaderIDE.Render;
 using System;
 using System.IO;
@@ -9,8 +10,10 @@ namespace ShaderIDE;
 
 public partial class EditorWindow : Window
 {
-    public EditorWindow()
+    public EditorWindow(Preferences preferences, ColorSchemeManager colorSchemeManager)
     {
+        _preferences = preferences;
+        ColorSchemeManager = colorSchemeManager;
         InitializeComponent();
         OpenTkControl.Start(new GLWpfControlSettings
         {
@@ -107,7 +110,8 @@ public partial class EditorWindow : Window
         _canvas.Dispose();
     }
 
+    public ColorSchemeManager ColorSchemeManager { get; }
+    private readonly Preferences _preferences;
     private readonly RenderCanvas _canvas;
     private bool _modified = false;
-
 }

@@ -29,9 +29,9 @@
                 <Button Click="Save_Click">Save</Button>
             </ToolBar>
             <ToolBar>
-                <ComboBox ItemsSource="{Binding Source={x:Static local:ColorSchemeManager.Instance}, Path=ColorSchemes}"
+                <ComboBox ItemsSource="{Binding ElementName=editorWindow, Path=ColorSchemeManager.ColorSchemes}"
                           IsEditable="false" IsReadOnly="true"
-                          SelectedItem="{Binding Source={x:Static local:ColorSchemeManager.Instance}, Path=Current}">
+                          SelectedItem="{Binding ElementName=editorWindow, Path=ColorSchemeManager.Current}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding Name}"></TextBlock>
@@ -42,9 +42,9 @@
         </ToolBarTray>
         <controls:SyntaxTextBox Grid.Column="0" Grid.Row="1" x:Name="fragmentShaderTextBox" 
                              VerticalScrollBarVisibility="Auto" TextChanged="fragmentShaderTextBox_TextChanged"
-                                ColorScheme="{Binding Source={x:Static local:ColorSchemeManager.Instance}, Path=Current}" />
+                                ColorScheme="{Binding ElementName=editorWindow, Path=ColorSchemeManager.Current}" />
         <controls:SuggestionBox TargetTextBox="{Binding ElementName=fragmentShaderTextBox}" PlacementTarget="{Binding ElementName=fragmentShaderTextBox}"
-                                ColorScheme="{Binding Source={x:Static local:ColorSchemeManager.Instance}, Path=Current}"/>
+                                ColorScheme="{Binding ElementName=editorWindow, Path=ColorSchemeManager.Current}"/>
         <glWpfControl:GLWpfControl Grid.Column="1" Grid.Row="0" Grid.RowSpan="2" x:Name="OpenTkControl" Render="OpenTkControl_OnRender"/>
     </Grid>
 </Window>

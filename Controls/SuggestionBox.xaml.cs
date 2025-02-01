@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using ShaderIDE.Data;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -25,7 +26,7 @@ public partial class SuggestionBox : Popup
             SelectedIndex = 0
         };
 
-        AllItems = SyntaxMapping.OpenGL.Tokens.Values.SelectMany(x => x).Order().ToList();
+        AllItems = SyntaxMapLoader.OpenGL.Tokens.Values.SelectMany(x => x).Order().ToList();
         Placement = PlacementMode.Bottom;
         StaysOpen = false;
         Child = List;

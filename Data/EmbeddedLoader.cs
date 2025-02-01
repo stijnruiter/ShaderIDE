@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Reflection;
 
-namespace ShaderIDE;
+namespace ShaderIDE.Data;
 
 public static class EmbeddedLoader
 {
@@ -11,7 +11,7 @@ public static class EmbeddedLoader
         var stream = assembly.GetManifestResourceStream(path);
         if (stream is null)
             throw new FileNotFoundException($"Embedded resource {path} not found. Possible names are {string.Join(", \r\n", assembly.GetManifestResourceNames())}", path);
-        
+
         return stream;
     }
 

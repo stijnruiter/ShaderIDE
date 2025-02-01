@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace ShaderIDE;
+namespace ShaderIDE.Data;
 
 public enum TokenType
 {
@@ -15,14 +15,14 @@ public enum TokenType
     Keyword
 }
 
-internal class SyntaxMapping
+internal class SyntaxMapLoader
 {
-    public static readonly SyntaxMapping OpenGL = Load("ShaderIDE.Resources.glsl_mapping.txt");
+    public static readonly SyntaxMapLoader OpenGL = Load("ShaderIDE.Resources.glsl_mapping.txt");
 
-    public static SyntaxMapping Load(string embeddedName) 
+    public static SyntaxMapLoader Load(string embeddedName)
         => Load(EmbeddedLoader.GetStream(embeddedName));
 
-    public static SyntaxMapping Load(Stream stream)
+    public static SyntaxMapLoader Load(Stream stream)
     {
         TokenType type = TokenType.None;
         using var sr = new StreamReader(stream);
@@ -53,10 +53,10 @@ internal class SyntaxMapping
                                           .Where(token => !string.IsNullOrWhiteSpace(token)));
         }
 
-        return new SyntaxMapping(dictionary);
+        return new SyntaxMapLoader(dictionary);
     }
 
-    private SyntaxMapping()
+    private SyntaxMapLoader()
     {
         var dictionary = new Dictionary<TokenType, List<string>>();
         foreach (var tokenType in Enum.GetValues<TokenType>())
@@ -66,7 +66,7 @@ internal class SyntaxMapping
         Tokens = dictionary;
     }
 
-    private SyntaxMapping(IReadOnlyDictionary<TokenType, List<string>> tokens)
+    private SyntaxMapLoader(IReadOnlyDictionary<TokenType, List<string>> tokens)
     {
         Tokens = tokens;
     }

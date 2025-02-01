@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows.Media;
 
-namespace ShaderIDE;
+namespace ShaderIDE.Data;
 
 public class ColorScheme
 {
