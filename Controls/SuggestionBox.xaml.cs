@@ -9,7 +9,6 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
 
 namespace ShaderIDE.Controls;
 
@@ -21,11 +20,11 @@ public partial class SuggestionBox : Popup
 
         List = new ListBox()
         {
-            Foreground = Brushes.Black,
             Focusable = false,
             ItemsSource = Suggestions,
             SelectedIndex = 0
         };
+
         AllItems = SyntaxMapping.OpenGL.Tokens.Values.SelectMany(x => x).Order().ToList();
         Placement = PlacementMode.Bottom;
         StaysOpen = false;
@@ -37,7 +36,16 @@ public partial class SuggestionBox : Popup
 
     public ListBox List { get; }
 
-    [Bindable(true)]
+    public static readonly DependencyProperty ColorSchemeProperty =
+        DependencyProperty.Register(nameof(ColorScheme), typeof(ColorScheme),
+        typeof(SuggestionBox), new UIPropertyMetadata(default));
+
+    public ColorScheme ColorScheme
+    {
+        get => (ColorScheme)GetValue(ColorSchemeProperty);
+        set => SetValue(ColorSchemeProperty, value);
+    }
+
     public RichTextBox TargetTextBox
     {
         get => (RichTextBox)GetValue(TargetTextBoxProperty);

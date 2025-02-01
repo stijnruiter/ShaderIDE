@@ -4,7 +4,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:glWpfControl="clr-namespace:OpenTK.Wpf;assembly=GLWpfControl"
-        xmlns:local="clr-namespace:ShaderIDE.Controls"
+        xmlns:controls="clr-namespace:ShaderIDE.Controls"
+        xmlns:local="clr-namespace:ShaderIDE"
         mc:Ignorable="d"
         Title="Shader Editor" Height="720" Width="1280"
         Closed="Window_Closed"
@@ -27,10 +28,22 @@
                 <Button Click="Open_Click">Open</Button>
                 <Button Click="Save_Click">Save</Button>
             </ToolBar>
+            <ToolBar>
+                <ComboBox ItemsSource="{Binding Source={x:Static local:ColorSchemeManager.Instance}, Path=ColorSchemes}"
+                          SelectedIndex="0" IsEditable="false" IsReadOnly="true" SelectionChanged="ComboBox_SelectionChanged">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Name}"></TextBlock>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ComboBox>
+            </ToolBar>
         </ToolBarTray>
-        <local:SyntaxTextBox Grid.Column="0" Grid.Row="1" x:Name="fragmentShaderTextBox" 
-                             VerticalScrollBarVisibility="Auto" TextChanged="fragmentShaderTextBox_TextChanged"/>
-        <local:SuggestionBox TargetTextBox="{Binding ElementName=fragmentShaderTextBox}" PlacementTarget="{Binding ElementName=fragmentShaderTextBox}"/>
+        <controls:SyntaxTextBox Grid.Column="0" Grid.Row="1" x:Name="fragmentShaderTextBox" 
+                             VerticalScrollBarVisibility="Auto" TextChanged="fragmentShaderTextBox_TextChanged"
+                                ColorScheme="{Binding Source={x:Static local:ColorSchemeManager.Instance}, Path=Current}" />
+        <controls:SuggestionBox TargetTextBox="{Binding ElementName=fragmentShaderTextBox}" PlacementTarget="{Binding ElementName=fragmentShaderTextBox}"
+                                ColorScheme="{Binding Source={x:Static local:ColorSchemeManager.Instance}, Path=Current}"/>
         <glWpfControl:GLWpfControl Grid.Column="1" Grid.Row="0" Grid.RowSpan="2" x:Name="OpenTkControl" Render="OpenTkControl_OnRender"/>
     </Grid>
 </Window>

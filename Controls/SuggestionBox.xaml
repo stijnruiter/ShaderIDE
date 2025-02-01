@@ -3,19 +3,22 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:ShaderIDE.Controls"
+             xmlns:controls="clr-namespace:ShaderIDE.Controls"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
              MinWidth="200">
     <Popup.Resources>
         <Style TargetType="ListBox" BasedOn="{StaticResource {x:Type ListBox}}">
+            <Setter Property="Background" Value="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type controls:SuggestionBox}}, Path=ColorScheme.Background}" />
+            <Setter Property="Foreground" Value="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type controls:SuggestionBox}}, Path=ColorScheme.Foreground}" />
             <Style.Triggers>
                 <DataTrigger Binding="{Binding RelativeSource={x:Static RelativeSource.Self}, Path=HasItems}" Value="False">
                     <Setter Property="Template">
                         <Setter.Value>
                             <ControlTemplate>
-                                <Border BorderThickness="1" Background="Black">
-                                    <TextBlock Background="White" Foreground="Black" Padding="5">No suggestions</TextBlock>
+                                <Border BorderThickness="1" Background="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type controls:SuggestionBox}}, Path=ColorScheme.Background}">
+                                    <TextBlock Background="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type controls:SuggestionBox}}, Path=ColorScheme.Background}" 
+                                               Foreground="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type controls:SuggestionBox}}, Path=ColorScheme.Foreground}" Padding="5">No suggestions</TextBlock>
                                 </Border>
                             </ControlTemplate>
                         </Setter.Value>

@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace ShaderIDE;
 
-enum TokenType
+public enum TokenType
 {
     None,
     Comments,

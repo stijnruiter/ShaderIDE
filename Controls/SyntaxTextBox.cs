@@ -1,8 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
-using System.Linq;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -18,6 +19,22 @@ public class SyntaxTextBox : RichTextBox
         Document.LineHeight = 1;
         FontFamily = new FontFamily("Consolas");
         TextChanged += SyntaxTextBox_TextChanged;
+        SetBinding(BackgroundProperty, new Binding($"{nameof(ColorScheme)}.{nameof(ColorScheme.Background)}") { Source = this });
+    }
+
+    public static readonly DependencyProperty ColorSchemeProperty =
+        DependencyProperty.Register(nameof(ColorScheme), typeof(ColorScheme),
+        typeof(SyntaxTextBox), new UIPropertyMetadata(default, new PropertyChangedCallback(colorSchemeChanged)));
+
+    private static void colorSchemeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        ((SyntaxTextBox)d).ApplySyntaxHighlighting();
+    }
+
+    public ColorScheme ColorScheme
+    {
+        get => (ColorScheme)GetValue(ColorSchemeProperty);
+        set => SetValue(ColorSchemeProperty, value);
     }
 
     public TextRange TextRange => new(Document.ContentStart, Document.ContentEnd);
@@ -43,10 +60,18 @@ public class SyntaxTextBox : RichTextBox
         }
     }
 
+    private void ResetStyle(TextRange range)
+    {
+        range.ApplyPropertyValue(TextElement.ForegroundProperty, ColorScheme.Foreground);
+        range.ApplyPropertyValue(TextElement.BackgroundProperty, null);
+        range.ApplyPropertyValue(TextElement.FontFamilyProperty, FontFamily);
+        range.ApplyPropertyValue(TextElement.FontSizeProperty, FontSize);
+    }
+
     private void ApplySyntaxHighlighting()
     {
         TextRange textBoxRange = TextRange;
-        textBoxRange.ApplyPropertyValue(TextElement.ForegroundProperty, ColorScheme[TokenType.None]);
+        ResetStyle(textBoxRange);
 
         var text = textBoxRange.Text;
         TextPointer startPointer = textBoxRange.Start;
@@ -80,7 +105,7 @@ public class SyntaxTextBox : RichTextBox
             var tokenType = GetTokenType(token);
             if (tokenType != TokenType.None && GetTextRangeOfToken(startPointer, offset, token.Length) is { } tokenRange)
             {
-                tokenRange.ApplyPropertyValue(TextElement.ForegroundProperty, ColorScheme[tokenType]);
+                tokenRange.ApplyPropertyValue(TextElement.ForegroundProperty, ColorScheme.GetColor(tokenType));
                 startPointer = tokenRange.Start;
                 offset = 0;
             }
@@ -129,24 +154,6 @@ public class SyntaxTextBox : RichTextBox
         }
         return new TextRange(start, end);
     }
-
-    private static TextRange GetTextRangeOfToken(TextPointer startPointer, int offset)
-    {
-        var start = GetTextPositionAtOffset(startPointer, offset);
-        if (start is null)
-        {
-            Debug.Fail("Start TextPointer not found.");
-            return null;
-        }
-
-        var endOfLine = start.GetLineStartPosition(1);
-        if (endOfLine is null)
-        {
-            Debug.Fail("End of line not found");
-            return null;
-        }
-        return new TextRange(start, endOfLine);
-    }
     
     private static TextPointer? GetTextPositionAtOffset(TextPointer position, int characterCount)
     {
@@ -172,26 +179,6 @@ public class SyntaxTextBox : RichTextBox
 
         return position;
     }
-
-    internal static readonly IReadOnlyDictionary<TokenType, SolidColorBrush> ColorScheme = new Dictionary<TokenType, SolidColorBrush>
-    {
-        {TokenType.None, new SolidColorBrush(Colors.Black) },
-        {TokenType.Comments, new SolidColorBrush(Colors.Gray) },
-        {TokenType.Keyword, new SolidColorBrush(Colors.Blue) },
-        {TokenType.DataType, new SolidColorBrush(Colors.Brown) },
-        {TokenType.SpecialVariable, new SolidColorBrush(Colors.YellowGreen) },
-        {TokenType.IntrinsicMethod, new SolidColorBrush(Colors.Red) },
-    };
-
-
-    private static readonly SolidColorBrush _color = new(Colors.Black);
-    private static readonly SolidColorBrush _colorBlue = new(Colors.Blue);
-    private static readonly SolidColorBrush _colorGray = new(Colors.Blue);
-    private static readonly SolidColorBrush _colorGren = new(Colors.Green);
-    private static readonly SolidColorBrush _colorRed = new(Colors.Red);
-
-    private static readonly string[] _keyWords = { "void", "out" };
-    private static readonly string[] _dataTypes = { "vec3", "vec4", "int" };
 }
 
 public static class KeyEventExtension

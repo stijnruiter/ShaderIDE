@@ -2,10 +2,9 @@
 using OpenTK.Wpf;
 using ShaderIDE.Render;
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Windows;
-using System.Windows.Media;
+using System.Windows.Controls;
 
 namespace ShaderIDE;
 
@@ -109,6 +108,15 @@ public partial class EditorWindow : Window
     {
         _canvas.Dispose();
     }
+
+    private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if ((sender as ComboBox)?.SelectedItem is not ColorScheme scheme)
+            return;
+
+        ColorSchemeManager.SetScheme(scheme);
+    }
+
 
     private readonly RenderCanvas _canvas;
     private bool _modified = false;
