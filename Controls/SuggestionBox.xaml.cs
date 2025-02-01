@@ -26,7 +26,7 @@ public partial class SuggestionBox : Popup
             ItemsSource = Suggestions,
             SelectedIndex = 0
         };
-        AllItems = SyntaxMapping.OpenGL.Tokens.Values.SelectMany(x => x).ToList();
+        AllItems = SyntaxMapping.OpenGL.Tokens.Values.SelectMany(x => x).Order().ToList();
         Placement = PlacementMode.Bottom;
         StaysOpen = false;
         Child = List;

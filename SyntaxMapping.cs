@@ -4,9 +4,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Net.WebRequestMethods;
 
 namespace ShaderIDE;
 
@@ -62,7 +59,9 @@ internal class SyntaxMapping
                 continue;
             }
 
-            dictionary[type].AddRange(line.Split(' ').Select(token => token.Trim()));
+            dictionary[type].AddRange(line.Split(' ')
+                                          .Select(token => token.Trim())
+                                          .Where(token => !string.IsNullOrWhiteSpace(token)));
         }
 
         return new SyntaxMapping(dictionary);
