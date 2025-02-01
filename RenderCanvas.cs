@@ -2,6 +2,7 @@
 using OpenTK.Mathematics;
 using ShaderIDE.Render;
 using System;
+using System.Diagnostics;
 
 namespace ShaderIDE;
 
@@ -16,6 +17,9 @@ internal class RenderCanvas : IDisposable
         _arrayBuffer = new ArrayBuffer(_vertices);
         GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
         GL.EnableVertexAttribArray(0);
+
+        _timer = new Stopwatch();
+        _timer.Start();
     }
 
     public void UpdateShader(string vertexShader, string fragmentShader)
@@ -37,6 +41,7 @@ internal class RenderCanvas : IDisposable
     {
         _shader?.Use();
         _vertexArray.Bind();
+        _shader?.SetUniform1("time", (float)_timer.Elapsed.TotalSeconds);
         GL.DrawArrays(PrimitiveType.Quads, 0, _vertices.Length / 3);
     }
 
@@ -51,6 +56,7 @@ internal class RenderCanvas : IDisposable
     public string VertexShader { get; private set; } = Shader.DefaultVertexShader;
     public string FragmentShader { get; private set; } = Shader.DefaultFragmentShader;
 
+    private Stopwatch _timer;
     private Shader? _shader;
     private readonly VertexArray _vertexArray;
     private readonly ArrayBuffer _arrayBuffer;

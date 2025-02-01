@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 
 namespace ShaderIDE;
 
@@ -19,19 +17,10 @@ enum TokenType
 
 internal class SyntaxMapping
 {
-    public static readonly SyntaxMapping OpenGL = Load("ShaderIDE.glsl_mapping.txt");
+    public static readonly SyntaxMapping OpenGL = Load("ShaderIDE.Resources.glsl_mapping.txt");
 
-    public static SyntaxMapping Load(string embeddedName)
-    {
-        var assembly = Assembly.GetExecutingAssembly();
-        using var stream = assembly.GetManifestResourceStream(embeddedName);
-        if (stream is null)
-        {
-            Debug.Fail($"EmbeddedResource '{embeddedName}' not found.");
-            return new SyntaxMapping();
-        }
-        return Load(stream);
-    }
+    public static SyntaxMapping Load(string embeddedName) 
+        => Load(EmbeddedLoader.GetStream(embeddedName));
 
     public static SyntaxMapping Load(Stream stream)
     {

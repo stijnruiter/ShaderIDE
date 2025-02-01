@@ -86,25 +86,47 @@ internal class Shader : IDisposable
         return new Shader { Handle = shaderHandle };
     }
 
+    public int GetUniformLocation(string uniformName)
+    {
+        return GL.GetUniformLocation(Handle, uniformName);
+    }
+
+    public bool SetUniform1<T>(string uniformName, T value) where T : struct
+    {
+        var location = GetUniformLocation(uniformName);
+        if (location < 0)
+            return false;
+
+        if (value is double doubleValue)
+        {
+            GL.Uniform1(location, doubleValue);
+            return true;
+        }
+        if (value is float floatValue)
+        {
+            GL.Uniform1(location, floatValue);
+            return true;
+        }
+        if (value is int intValue)
+        {
+            GL.Uniform1(location, intValue);
+            return true;
+        }
+        if (value is uint uintValue)
+        {
+            GL.Uniform1(location, uintValue);
+            return true;
+        }
+        throw new NotImplementedException();
+    }
+
     public void Dispose()
     {
         GL.DeleteShader(Handle);
         Handle = 0;
     }
 
-    public const string DefaultVertexShader = "#version 330 core\r\n" +
-        "layout (location = 0) in vec3 aPosition;\r\n" +
-        "\r\n" +
-        "void main()\r\n" +
-        "{\r\n" +
-        "    gl_Position = vec4(aPosition, 1.0);\r\n" +
-        "}";
+    public static readonly string DefaultVertexShader = EmbeddedLoader.GetContent("ShaderIDE.Resources.vertex.glsl");
 
-    public const string DefaultFragmentShader = "#version 330 core\r\n" +
-        "out vec4 FragColor;\r\n" +
-        "\r\n" +
-        "void main()\r\n" +
-        "{\r\n" +
-        "    FragColor = vec4(0.5f, 0.5f, 0.5f, 1.0f);\r\n" +
-        "}";
+    public static readonly string DefaultFragmentShader = EmbeddedLoader.GetContent("ShaderIDE.Resources.mandelbrot.glsl");
 }

@@ -10,10 +10,14 @@
 
   <ItemGroup>
     <None Remove="glsl_mapping.txt" />
+    <None Remove="Resources\mandelbrot.glsl" />
+    <None Remove="Resources\vertex.glsl" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="glsl_mapping.txt" />
+    <EmbeddedResource Include="Resources\glsl_mapping.txt" />
+    <EmbeddedResource Include="Resources\mandelbrot.glsl" />
+    <EmbeddedResource Include="Resources\vertex.glsl" />
   </ItemGroup>
 
   <ItemGroup>

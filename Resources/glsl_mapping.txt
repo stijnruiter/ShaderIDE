@@ -17,7 +17,7 @@ barrier groupMemoryBarrier memoryBarrier memoryBarrierAtomicCounter memoryBarrie
 
 # SpecialVariable
 gl_ClipDistance gl_CullDistance gl_FragCoord gl_FragDepth gl_FrontFacing gl_GlobalInvocationID gl_HelperInvocation gl_InstanceID gl_InvocationID gl_Layer gl_LocalInvocationID gl_LocalInvocationIndex gl_NumSamples gl_NumWorkGroups gl_PatchVerticesIn gl_PointCoord gl_PointSize gl_Position gl_PrimitiveID gl_PrimitiveIDIn gl_SampleID gl_SampleMask gl_SampleMaskIn gl_SamplePosition gl_TessCoord gl_TessLevelInner gl_TessLevelOuter gl_VertexID gl_ViewportIndex gl_WorkGroupID gl_WorkGroupSize
-FragColor 
+FragColor time vertexPosition
 
 # Keyword
 active asm attribute break case cast centroid class common const continue default discard do else enum extern external false filter fixed flat for foreach goto highp if in inline inout input interface invariant layout lowp mediump namespace noinline noperspective out output packed partition patch precision public return row_major sample sizeof smooth static struct subroutine superp switch template this true typedef uniform union using varying volatile while false true shared readonly writeonly coherent volatile restrict

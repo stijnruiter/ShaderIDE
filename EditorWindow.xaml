@@ -19,7 +19,8 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Button Grid.Column="0" Grid.Row="0" Width="100" HorizontalAlignment="Left" Click="Button_Click">Compile</Button>
-        <local:SyntaxTextBox Grid.Column="0" Grid.Row="1" x:Name="fragmentShaderTextBox" />
+        <local:SyntaxTextBox Grid.Column="0" Grid.Row="1" x:Name="fragmentShaderTextBox" 
+                             VerticalScrollBarVisibility="Auto" />
         <local:SuggestionBox TargetTextBox="{Binding ElementName=fragmentShaderTextBox}" PlacementTarget="{Binding ElementName=fragmentShaderTextBox}"/>
         <glWpfControl:GLWpfControl Grid.Column="1" Grid.Row="0" Grid.RowSpan="2" x:Name="OpenTkControl" Render="OpenTkControl_OnRender"/>
     </Grid>
