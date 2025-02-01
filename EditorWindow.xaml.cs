@@ -20,10 +20,20 @@ public partial class EditorWindow : Window
             MajorVersion = 3,
             MinorVersion = 3
         });
-        fragmentShaderTextBox.Text = Shader.DefaultFragmentShader;
-        _modified = false;
         _canvas = new RenderCanvas();
+
+        LoadFileContent();
+
+        Closing += EditorWindow_Closing;
         KeyDown += EditorWindow_KeyDown;
+    }
+
+    private void LoadFileContent()
+    {
+        fragmentShaderTextBox.Text = File.Exists(_preferences.LastFilePath) 
+                ? File.ReadAllText(_preferences.LastFilePath)
+                : fragmentShaderTextBox.Text = Shader.DefaultFragmentShader;
+        _modified = false;
     }
 
     private void EditorWindow_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
@@ -56,13 +66,14 @@ public partial class EditorWindow : Window
         return true;
     }
 
-    private void Reset_Click(object sender, RoutedEventArgs e)
+    private void New_Click(object sender, RoutedEventArgs e)
     {
         if (!ConfirmCanOverwriteTextBox())
             return;
 
         fragmentShaderTextBox.Text = Shader.DefaultFragmentShader;
         _modified = false;
+        _preferences.LastFilePath = string.Empty;
     }
 
     private void Open_Click(object sender, RoutedEventArgs e)
@@ -75,19 +86,30 @@ public partial class EditorWindow : Window
 
         if (dialog?.ShowDialog() != true)
             return;
+
         fragmentShaderTextBox.Text = File.ReadAllText(dialog.FileName);
+        _preferences.LastFilePath = dialog.FileName;
+        _preferences.LastDirectory = Path.GetDirectoryName(dialog.FileName) ?? string.Empty;
         _modified = false;
     }
 
     private void Save_Click(object sender, RoutedEventArgs e)
     {
+        SaveFile();
+    }
+
+    public bool SaveFile()
+    {
         SaveFileDialog dialog = new SaveFileDialog();
         PrepareFileDialog(dialog);
         if ((dialog?.ShowDialog()) != true)
-            return;
-        
+            return false;
+
         File.WriteAllText(dialog.FileName, fragmentShaderTextBox.Text);
+        _preferences.LastFilePath = dialog.FileName;
+        _preferences.LastDirectory = Path.GetDirectoryName(dialog.FileName) ?? string.Empty;
         _modified = false;
+        return true;
     }
 
     public void PrepareFileDialog(FileDialog dialog)
@@ -98,7 +120,27 @@ public partial class EditorWindow : Window
         {
             openFileDialog.Multiselect = false;
         }
+        if (Directory.Exists(_preferences.LastDirectory))
+        {
+            dialog.InitialDirectory = _preferences.LastDirectory;
+        }
     }
+
+    private void EditorWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
+    {
+        if (!_modified)
+            return;
+
+        var result = MessageBox.Show("Do you want to save your progress?", "You are about to close the application.", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
+        if (result == MessageBoxResult.Yes)
+        {
+            e.Cancel = !SaveFile();
+            return;
+        }
+
+        e.Cancel = result == MessageBoxResult.Cancel;
+    }
+
 
     private void fragmentShaderTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
     {

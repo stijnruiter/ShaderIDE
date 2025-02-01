@@ -24,7 +24,7 @@
                 <Button Width="100" HorizontalAlignment="Left" Click="Compile_Click">Compile [F5]</Button>
             </ToolBar>
             <ToolBar>
-                <Button Click="Reset_Click">Reset</Button>
+                <Button Click="New_Click">New</Button>
                 <Button Click="Open_Click">Open</Button>
                 <Button Click="Save_Click">Save</Button>
             </ToolBar>
