@@ -1,31 +1,47 @@
 ﻿using System.Collections.ObjectModel;
 using System.Windows.Media;
 using System.Windows;
+using System.Linq;
+using System;
 
 namespace ShaderIDE;
 
 public class ColorSchemeManager : DependencyObject
 {
+    private ColorSchemeManager()
+    {
+        Configuration = Configuration.Load();
+        SetScheme(Configuration.ColorScheme);
+    }
+
     static ColorSchemeManager()
     {
-        Instance = new ColorSchemeManager
-        {
-            Current = Dark
-        };
+        Instance = new ColorSchemeManager();
     }
 
     public static ColorSchemeManager Instance { get; private set; }
 
-    public static void SetScheme(ColorScheme colorScheme)
+    public void SetScheme(string name)
     {
-        Instance.Current = colorScheme;
+        var scheme = ColorSchemes.SingleOrDefault(c => c.Name.Equals(name, System.StringComparison.InvariantCultureIgnoreCase));
+        if (scheme != null)
+        {
+            Current = scheme;
+        }
     }
 
     public ObservableCollection<ColorScheme> ColorSchemes { get; set; } = [Default, Dark, Adas, Cosmo];
 
     public static readonly DependencyProperty CurrentColorSchemeProperty =
         DependencyProperty.Register(nameof(Current), typeof(ColorScheme),
-        typeof(ColorSchemeManager), new UIPropertyMetadata(Dark));
+        typeof(ColorSchemeManager), new UIPropertyMetadata(Dark, new PropertyChangedCallback(OnCurrentColorSchemChanged)));
+
+    private static void OnCurrentColorSchemChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        var manager = (ColorSchemeManager)d;
+        manager.Configuration.ColorScheme = manager.Current.Name;
+        manager.Configuration.Save();
+    }
 
     public ColorScheme Current
     {
@@ -71,5 +87,7 @@ public class ColorSchemeManager : DependencyObject
     };
 
     public readonly static ColorScheme Default = new();
+
+    public readonly Configuration Configuration;
 }
 

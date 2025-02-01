@@ -4,7 +4,6 @@ using ShaderIDE.Render;
 using System;
 using System.IO;
 using System.Windows;
-using System.Windows.Controls;
 
 namespace ShaderIDE;
 
@@ -21,7 +20,6 @@ public partial class EditorWindow : Window
         fragmentShaderTextBox.Text = Shader.DefaultFragmentShader;
         _modified = false;
         _canvas = new RenderCanvas();
-
         KeyDown += EditorWindow_KeyDown;
     }
 
@@ -108,15 +106,6 @@ public partial class EditorWindow : Window
     {
         _canvas.Dispose();
     }
-
-    private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if ((sender as ComboBox)?.SelectedItem is not ColorScheme scheme)
-            return;
-
-        ColorSchemeManager.SetScheme(scheme);
-    }
-
 
     private readonly RenderCanvas _canvas;
     private bool _modified = false;

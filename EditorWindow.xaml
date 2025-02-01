@@ -30,7 +30,8 @@
             </ToolBar>
             <ToolBar>
                 <ComboBox ItemsSource="{Binding Source={x:Static local:ColorSchemeManager.Instance}, Path=ColorSchemes}"
-                          SelectedIndex="0" IsEditable="false" IsReadOnly="true" SelectionChanged="ComboBox_SelectionChanged">
+                          IsEditable="false" IsReadOnly="true"
+                          SelectedItem="{Binding Source={x:Static local:ColorSchemeManager.Instance}, Path=Current}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding Name}"></TextBlock>
