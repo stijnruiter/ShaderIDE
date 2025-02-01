@@ -1,7 +1,11 @@
-﻿using OpenTK.Wpf;
+﻿using Microsoft.Win32;
+using OpenTK.Wpf;
 using ShaderIDE.Render;
 using System;
+using System.Diagnostics;
+using System.IO;
 using System.Windows;
+using System.Windows.Media;
 
 namespace ShaderIDE;
 
@@ -16,6 +20,7 @@ public partial class EditorWindow : Window
             MinorVersion = 3
         });
         fragmentShaderTextBox.Text = Shader.DefaultFragmentShader;
+        _modified = false;
         _canvas = new RenderCanvas();
 
         KeyDown += EditorWindow_KeyDown;
@@ -35,9 +40,69 @@ public partial class EditorWindow : Window
         _canvas.Draw(delta);
     }
 
-    private void Button_Click(object sender, RoutedEventArgs e)
+    private void Compile_Click(object sender, RoutedEventArgs e)
     {
         _canvas.UpdateShader(Shader.DefaultVertexShader, fragmentShaderTextBox.Text);
+    }
+
+    private bool ConfirmCanOverwriteTextBox()
+    {
+        if (_modified)
+        {
+            var result = MessageBox.Show("Any unsaved changes will be lost.", "Are you sure you want to continue?", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (result != MessageBoxResult.Yes)
+                return false;
+        }
+        return true;
+    }
+
+    private void Reset_Click(object sender, RoutedEventArgs e)
+    {
+        if (!ConfirmCanOverwriteTextBox())
+            return;
+
+        fragmentShaderTextBox.Text = Shader.DefaultFragmentShader;
+        _modified = false;
+    }
+
+    private void Open_Click(object sender, RoutedEventArgs e)
+    {
+        if (!ConfirmCanOverwriteTextBox())
+            return;
+
+        OpenFileDialog dialog = new OpenFileDialog();
+        PrepareFileDialog(dialog);
+
+        if (dialog?.ShowDialog() != true)
+            return;
+        fragmentShaderTextBox.Text = File.ReadAllText(dialog.FileName);
+        _modified = false;
+    }
+
+    private void Save_Click(object sender, RoutedEventArgs e)
+    {
+        SaveFileDialog dialog = new SaveFileDialog();
+        PrepareFileDialog(dialog);
+        if ((dialog?.ShowDialog()) != true)
+            return;
+        
+        File.WriteAllText(dialog.FileName, fragmentShaderTextBox.Text);
+        _modified = false;
+    }
+
+    public void PrepareFileDialog(FileDialog dialog)
+    {
+        dialog.Filter = "OpenGL Files|*.glsl;*.vert;*.tesc;*.tese;*.geom;*.frag;*.comp|All Files|*.*";
+        dialog.DefaultExt = "glsl";
+        if (dialog is OpenFileDialog openFileDialog)
+        {
+            openFileDialog.Multiselect = false;
+        }
+    }
+
+    private void fragmentShaderTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+    {
+        _modified = true;
     }
 
     private void Window_Closed(object sender, EventArgs e)
@@ -46,4 +111,6 @@ public partial class EditorWindow : Window
     }
 
     private readonly RenderCanvas _canvas;
+    private bool _modified = false;
+
 }

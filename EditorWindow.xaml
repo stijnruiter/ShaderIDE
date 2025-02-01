@@ -6,7 +6,7 @@
         xmlns:glWpfControl="clr-namespace:OpenTK.Wpf;assembly=GLWpfControl"
         xmlns:local="clr-namespace:ShaderIDE.Controls"
         mc:Ignorable="d"
-        Title="Shader Editor" Height="450" Width="800"
+        Title="Shader Editor" Height="720" Width="1280"
         Closed="Window_Closed"
         x:Name="editorWindow">
     <Grid>
@@ -18,9 +18,18 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <Button Grid.Column="0" Grid.Row="0" Width="100" HorizontalAlignment="Left" Click="Button_Click">Compile</Button>
+        <ToolBarTray Grid.Column="0" Grid.Row="0">
+            <ToolBar>
+                <Button Width="100" HorizontalAlignment="Left" Click="Compile_Click">Compile [F5]</Button>
+            </ToolBar>
+            <ToolBar>
+                <Button Click="Reset_Click">Reset</Button>
+                <Button Click="Open_Click">Open</Button>
+                <Button Click="Save_Click">Save</Button>
+            </ToolBar>
+        </ToolBarTray>
         <local:SyntaxTextBox Grid.Column="0" Grid.Row="1" x:Name="fragmentShaderTextBox" 
-                             VerticalScrollBarVisibility="Auto" />
+                             VerticalScrollBarVisibility="Auto" TextChanged="fragmentShaderTextBox_TextChanged"/>
         <local:SuggestionBox TargetTextBox="{Binding ElementName=fragmentShaderTextBox}" PlacementTarget="{Binding ElementName=fragmentShaderTextBox}"/>
         <glWpfControl:GLWpfControl Grid.Column="1" Grid.Row="0" Grid.RowSpan="2" x:Name="OpenTkControl" Render="OpenTkControl_OnRender"/>
     </Grid>
