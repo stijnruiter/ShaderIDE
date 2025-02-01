@@ -53,10 +53,25 @@ public class SyntaxTextBox : RichTextBox
         int offset = 0;
         string token = string.Empty;
 
+        bool goToEol = false;
+
         for (var index = 0; index < text.Length; index++)
         {
             char nextChar = text[index];
-            if (char.IsLetterOrDigit(nextChar) || nextChar == '_')
+            if (char.IsLetterOrDigit(nextChar) || nextChar == '_' || nextChar == '#')
+            {
+                token += nextChar;
+                continue;
+            }
+
+            if (nextChar == '/' && text.Length > index + 1 && text[index + 1] == '/')
+            {
+                goToEol = true;
+                token += nextChar;
+                continue;
+            }
+
+            if (goToEol && !Environment.NewLine.Contains(nextChar))
             {
                 token += nextChar;
                 continue;
@@ -76,12 +91,19 @@ public class SyntaxTextBox : RichTextBox
             if (!Environment.NewLine.Contains(nextChar))
             {
                 offset++;
+            } 
+            else
+            {
+                goToEol = false;
             }
         }
     }
 
     private static TokenType GetTokenType(string token)
     {
+        if (token.StartsWith("//") || token.StartsWith("#"))
+            return TokenType.Comments;
+
         foreach(var (type, values) in SyntaxMapping.OpenGL.Tokens)
         {
             if (values.Contains(token))
@@ -106,6 +128,24 @@ public class SyntaxTextBox : RichTextBox
             return null;
         }
         return new TextRange(start, end);
+    }
+
+    private static TextRange GetTextRangeOfToken(TextPointer startPointer, int offset)
+    {
+        var start = GetTextPositionAtOffset(startPointer, offset);
+        if (start is null)
+        {
+            Debug.Fail("Start TextPointer not found.");
+            return null;
+        }
+
+        var endOfLine = start.GetLineStartPosition(1);
+        if (endOfLine is null)
+        {
+            Debug.Fail("End of line not found");
+            return null;
+        }
+        return new TextRange(start, endOfLine);
     }
     
     private static TextPointer? GetTextPositionAtOffset(TextPointer position, int characterCount)
@@ -136,6 +176,7 @@ public class SyntaxTextBox : RichTextBox
     internal static readonly IReadOnlyDictionary<TokenType, SolidColorBrush> ColorScheme = new Dictionary<TokenType, SolidColorBrush>
     {
         {TokenType.None, new SolidColorBrush(Colors.Black) },
+        {TokenType.Comments, new SolidColorBrush(Colors.Gray) },
         {TokenType.Keyword, new SolidColorBrush(Colors.Blue) },
         {TokenType.DataType, new SolidColorBrush(Colors.Brown) },
         {TokenType.SpecialVariable, new SolidColorBrush(Colors.YellowGreen) },
@@ -165,6 +206,12 @@ public static class KeyEventExtension
     {
         int keyValue = (int)key;
         return ((keyValue >= (int)Key.D0 && keyValue <= (int)Key.Z) || 
-            (keyValue >= (int)Key.NumPad0 && keyValue <= (int)Key.NumPad9)); 
+            (keyValue >= (int)Key.NumPad0 && keyValue <= (int)Key.NumPad9));
+    }
+
+    public static bool IsFunctionKey(this Key key)
+    {
+        int keyValue = (int)key;
+        return keyValue >= (int)Key.F1 && keyValue <= (int)Key.F24;
     }
 }

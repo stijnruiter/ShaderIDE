@@ -96,6 +96,12 @@ public partial class SuggestionBox : Popup
         if (!IsOpen)
             return;
 
+        if (e.Key.IsFunctionKey())
+        {
+            Cancel();
+            return;
+        }
+
         switch (e.Key)
         {
             case Key.Up when _isNavigating:

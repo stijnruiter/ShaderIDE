@@ -17,6 +17,16 @@ public partial class EditorWindow : Window
         });
         fragmentShaderTextBox.Text = Shader.DefaultFragmentShader;
         _canvas = new RenderCanvas();
+
+        KeyDown += EditorWindow_KeyDown;
+    }
+
+    private void EditorWindow_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+    {
+        if (e.Key == System.Windows.Input.Key.F5)
+        {
+            _canvas.UpdateShader(Shader.DefaultVertexShader, fragmentShaderTextBox.Text);
+        }
     }
 
     private void OpenTkControl_OnRender(TimeSpan delta)
@@ -34,8 +44,6 @@ public partial class EditorWindow : Window
     {
         _canvas.Dispose();
     }
-
-    internal SyntaxMapping Syntax { get; }
 
     private readonly RenderCanvas _canvas;
 }

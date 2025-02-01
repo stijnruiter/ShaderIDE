@@ -13,6 +13,7 @@ namespace ShaderIDE;
 enum TokenType
 {
     None,
+    Comments,
     IntrinsicMethod,
     DataType,
     SpecialVariable,
