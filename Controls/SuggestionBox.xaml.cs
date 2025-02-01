@@ -1,6 +1,8 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
@@ -11,22 +13,27 @@ using System.Windows.Media;
 
 namespace ShaderIDE.Controls;
 
-internal class SuggestionBox : Popup
+public partial class SuggestionBox : Popup
 {
     public SuggestionBox()
     {
+        InitializeComponent();
+
         List = new ListBox()
         {
             Foreground = Brushes.Black,
             Focusable = false,
-            ItemsSource = new string[] {
-                "test",
-                "tes2",
-                "test3"
-            },
+            ItemsSource = Suggestions,
             SelectedIndex = 0
         };
-
+        AllItems.AddRange(
+        [
+            "void",
+            "vec3",
+            "vec4",
+            "int",
+            "FragColor",
+        ]);
         Placement = PlacementMode.Bottom;
         StaysOpen = false;
         Child = List;
@@ -45,9 +52,9 @@ internal class SuggestionBox : Popup
     }
 
     public static readonly DependencyProperty TargetTextBoxProperty = DependencyProperty.Register(
-                                                nameof(TargetTextBox), 
-                                                typeof(RichTextBox), 
-                                                typeof(SuggestionBox), 
+                                                nameof(TargetTextBox),
+                                                typeof(RichTextBox),
+                                                typeof(SuggestionBox),
                                                 new FrameworkPropertyMetadata(null, new PropertyChangedCallback(AttachTextBoxEvents)));
 
     private static void AttachTextBoxEvents(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -143,7 +150,7 @@ internal class SuggestionBox : Popup
 
     public void ApplySuggestion()
     {
-        if (List.Items.Count == 0 || List.SelectedIndex < 0)
+        if (!List.HasItems || List.SelectedIndex < 0)
             ApplySuggestion(string.Empty);
 
         ApplySuggestion((string)List.SelectedValue);
@@ -165,12 +172,18 @@ internal class SuggestionBox : Popup
 
     public void NextSuggestion()
     {
+        if (!List.HasItems)
+            return;
+
         _isNavigating = true;
         List.SelectedIndex = (List.SelectedIndex + 1) % List.Items.Count;
     }
 
     public void PreviousSuggestion()
     {
+        if (!List.HasItems)
+            return;
+
         _isNavigating = true;
         List.SelectedIndex = (List.Items.Count + List.SelectedIndex - 1) % List.Items.Count;
     }
@@ -183,9 +196,23 @@ internal class SuggestionBox : Popup
 
     public void UpdatePosition()
     {
-        var currentWordStartPosition = GetWordAtTextPosition(TargetTextBox?.CaretPosition)?.Start;
-        PlacementRectangle = currentWordStartPosition?.GetCharacterRect(LogicalDirection.Backward) ?? Rect.Empty;
+        var currentWord = GetWordAtTextPosition(TargetTextBox?.CaretPosition);
+        PlacementRectangle = currentWord?.Start?.GetCharacterRect(LogicalDirection.Backward) ?? Rect.Empty;
+        FilterList(currentWord?.Text ?? string.Empty);
     }
+
+    public ObservableCollection<string> Suggestions { get; } = new ObservableCollection<string>();
+
+    public void FilterList(string word)
+    {
+        Suggestions.Clear();
+        foreach (var filtered in AllItems.Where(item => item.Contains(word)))
+        {
+            Suggestions.Add(filtered);
+        }
+    }
+
+    public List<string> AllItems { get; } = new List<string>();
 
     public void Cancel()
     {
@@ -235,6 +262,6 @@ internal class SuggestionBox : Popup
             ? wordRange.Start.GetPositionAtOffset(match.Index + (direction == LogicalDirection.Backward ? 1 : 0)) ?? wordEdge
             : wordEdge;
     }
-    
+
     private bool _isNavigating = false;
 }
