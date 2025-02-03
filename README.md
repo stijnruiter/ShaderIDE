@@ -11,4 +11,4 @@ implemented some IDE features, such as syntax highlighting and a suggestion popu
 - Syntax/Suggestion list are implemented using a simple OpenGL keyword list
 
 ## Preview
-![Application screenshot, showcasing some IDE features with a Mandelbrot set fragment shader.](Resources/preview.png)
+![Application screenshot, showcasing some IDE features with a Mandelbrot set fragment shader.](preview.png)

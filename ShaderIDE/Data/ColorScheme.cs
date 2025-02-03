@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Windows.Media;
 
 namespace ShaderIDE.Data;
@@ -65,8 +64,6 @@ public class ColorScheme
         get => _foregroundColors[TokenType.IntrinsicMethod];
         set => _foregroundColors[TokenType.IntrinsicMethod] = value;
     }
-
-    public event PropertyChangedEventHandler? PropertyChanged;
 
     private readonly Dictionary<TokenType, SolidColorBrush> _foregroundColors;
 }
