@@ -30,7 +30,7 @@ public partial class EditorWindow : Window
 
     private void LoadFileContent()
     {
-        fragmentShaderTextBox.Text = File.Exists(_preferences.LastFilePath) 
+        fragmentShaderTextBox.Text = File.Exists(_preferences.LastFilePath)
                 ? File.ReadAllText(_preferences.LastFilePath)
                 : fragmentShaderTextBox.Text = Shader.DefaultFragmentShader;
         _modified = false;
@@ -98,7 +98,7 @@ public partial class EditorWindow : Window
         SaveFile();
     }
 
-    public bool SaveFile()
+    private bool SaveFile()
     {
         SaveFileDialog dialog = new SaveFileDialog();
         PrepareFileDialog(dialog);
@@ -112,7 +112,7 @@ public partial class EditorWindow : Window
         return true;
     }
 
-    public void PrepareFileDialog(FileDialog dialog)
+    private void PrepareFileDialog(FileDialog dialog)
     {
         dialog.Filter = "OpenGL Files|*.glsl;*.vert;*.tesc;*.tese;*.geom;*.frag;*.comp|All Files|*.*";
         dialog.DefaultExt = "glsl";
@@ -153,7 +153,10 @@ public partial class EditorWindow : Window
     }
 
     public ColorSchemeManager ColorSchemeManager { get; }
+    
     private readonly Preferences _preferences;
+    
     private readonly RenderCanvas _canvas;
+
     private bool _modified = false;
 }

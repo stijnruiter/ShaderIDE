@@ -1,9 +1,5 @@
 ﻿using ShaderIDE.Data;
 using System;
-using System.Configuration;
-using System.IO;
-using System.Reflection;
-using System.Text.Json;
 using System.Windows;
 
 namespace ShaderIDE;

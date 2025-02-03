@@ -1,8 +1,8 @@
-﻿using System.Collections.ObjectModel;
-using System.Windows.Media;
-using System.Windows;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.Linq;
-using System;
+using System.Windows;
+using System.Windows.Media;
 
 namespace ShaderIDE.Data;
 
@@ -29,11 +29,6 @@ public class ColorSchemeManager : DependencyObject
         DependencyProperty.Register(nameof(Current), typeof(ColorScheme),
         typeof(ColorSchemeManager), new UIPropertyMetadata(Dark, new PropertyChangedCallback(OnCurrentColorSchemChanged)));
 
-    private static void OnCurrentColorSchemChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-        var manager = (ColorSchemeManager)d;
-        manager.Preferences.ColorScheme = manager.Current.Name;
-    }
 
     public ColorScheme Current
     {
@@ -81,5 +76,11 @@ public class ColorSchemeManager : DependencyObject
     public readonly static ColorScheme Default = new();
 
     public readonly Preferences Preferences;
+
+    private static void OnCurrentColorSchemChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        var manager = (ColorSchemeManager)d;
+        manager.Preferences.ColorScheme = manager.Current.Name;
+    }
 }
 

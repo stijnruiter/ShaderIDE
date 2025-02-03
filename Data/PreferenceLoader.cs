@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Text.Json;
 
@@ -8,10 +7,6 @@ namespace ShaderIDE.Data;
 
 public static class PreferenceLoader
 {
-    public const string PreferenceFileName = "preferences.conf";
-
-    public static readonly string FullPath = Path.Join(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), PreferenceFileName);
-
     public static Preferences Load()
     {
         if (!File.Exists(FullPath))
@@ -28,4 +23,8 @@ public static class PreferenceLoader
     {
         File.WriteAllText(FullPath, JsonSerializer.Serialize(preferences));
     }
+
+    public const string PreferenceFileName = "preferences.conf";
+
+    public static readonly string FullPath = Path.Join(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), PreferenceFileName);
 }

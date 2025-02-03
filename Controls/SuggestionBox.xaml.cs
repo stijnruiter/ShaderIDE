@@ -1,8 +1,6 @@
 ﻿using ShaderIDE.Data;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows;
@@ -22,11 +20,11 @@ public partial class SuggestionBox : Popup
         List = new ListBox()
         {
             Focusable = false,
-            ItemsSource = Suggestions,
+            ItemsSource = FilteredSuggestions,
             SelectedIndex = 0
         };
 
-        AllItems = SyntaxMapLoader.OpenGL.Tokens.Values.SelectMany(x => x).Order().ToList();
+        AllSuggestions = SyntaxMapLoader.OpenGL.Tokens.Values.SelectMany(x => x).Order().ToList().AsReadOnly();
         Placement = PlacementMode.Bottom;
         StaysOpen = false;
         Child = List;
@@ -47,17 +45,96 @@ public partial class SuggestionBox : Popup
         set => SetValue(ColorSchemeProperty, value);
     }
 
+    public static readonly DependencyProperty TargetTextBoxProperty = DependencyProperty.Register(
+                                                nameof(TargetTextBox),
+                                                typeof(RichTextBox),
+                                                typeof(SuggestionBox),
+                                                new FrameworkPropertyMetadata(null, new PropertyChangedCallback(AttachTextBoxEvents)));
+
     public RichTextBox TargetTextBox
     {
         get => (RichTextBox)GetValue(TargetTextBoxProperty);
         set => SetValue(TargetTextBoxProperty, value);
     }
 
-    public static readonly DependencyProperty TargetTextBoxProperty = DependencyProperty.Register(
-                                                nameof(TargetTextBox),
-                                                typeof(RichTextBox),
-                                                typeof(SuggestionBox),
-                                                new FrameworkPropertyMetadata(null, new PropertyChangedCallback(AttachTextBoxEvents)));
+    public ObservableCollection<string> FilteredSuggestions { get; } = new ObservableCollection<string>();
+
+    public ReadOnlyCollection<string> AllSuggestions { get; }
+
+    public void ApplySuggestion()
+    {
+        if (!List.HasItems || List.SelectedIndex < 0)
+            ApplySuggestion(string.Empty);
+
+        ApplySuggestion((string)List.SelectedValue);
+    }
+
+    public void ApplySuggestion(string suggestion)
+    {
+        if (TargetTextBox is null)
+            return;
+
+        var range = GetWordAtTextPosition(TargetTextBox.CaretPosition);
+        if (range is null)
+            return;
+
+        range.Text = suggestion;
+        TargetTextBox.CaretPosition = range.End;
+        Cancel();
+    }
+
+    public void NextSuggestion()
+    {
+        if (!List.HasItems)
+            return;
+
+        _isNavigating = true;
+        List.SelectedIndex = (List.SelectedIndex + 1) % List.Items.Count;
+    }
+
+    public void PreviousSuggestion()
+    {
+        if (!List.HasItems)
+            return;
+
+        _isNavigating = true;
+        List.SelectedIndex = (List.Items.Count + List.SelectedIndex - 1) % List.Items.Count;
+    }
+
+    public void Show()
+    {
+        UpdatePosition();
+        IsOpen = !PlacementRectangle.IsEmpty;
+    }
+
+    public void UpdatePosition()
+    {
+        var currentWord = GetWordAtTextPosition(TargetTextBox?.CaretPosition);
+        PlacementRectangle = currentWord?.Start?.GetCharacterRect(LogicalDirection.Backward) ?? Rect.Empty;
+        FilterList(currentWord?.Text ?? string.Empty);
+    }
+
+
+    public void FilterList(string word)
+    {
+        FilteredSuggestions.Clear();
+        foreach (var filtered in AllSuggestions.Where(item => item.Contains(word, System.StringComparison.InvariantCultureIgnoreCase)).Take(25))
+        {
+            FilteredSuggestions.Add(filtered);
+        }
+        if (!FilteredSuggestions.Contains(List.SelectedItem))
+        {
+            List.SelectedIndex = 0;
+        }
+    }
+
+    public void Cancel()
+    {
+        _isNavigating = false;
+        IsOpen = false;
+        List.SelectedIndex = 0;
+        TargetTextBox?.Focus();
+    }
 
     private static void AttachTextBoxEvents(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
@@ -156,84 +233,6 @@ public partial class SuggestionBox : Popup
         UpdatePosition();
     }
 
-    public void ApplySuggestion()
-    {
-        if (!List.HasItems || List.SelectedIndex < 0)
-            ApplySuggestion(string.Empty);
-
-        ApplySuggestion((string)List.SelectedValue);
-    }
-
-    public void ApplySuggestion(string suggestion)
-    {
-        if (TargetTextBox is null)
-            return;
-
-        var range = GetWordAtTextPosition(TargetTextBox.CaretPosition);
-        if (range is null)
-            return;
-
-        range.Text = suggestion;
-        TargetTextBox.CaretPosition = range.End;
-        Cancel();
-    }
-
-    public void NextSuggestion()
-    {
-        if (!List.HasItems)
-            return;
-
-        _isNavigating = true;
-        List.SelectedIndex = (List.SelectedIndex + 1) % List.Items.Count;
-    }
-
-    public void PreviousSuggestion()
-    {
-        if (!List.HasItems)
-            return;
-
-        _isNavigating = true;
-        List.SelectedIndex = (List.Items.Count + List.SelectedIndex - 1) % List.Items.Count;
-    }
-
-    public void Show()
-    {
-        UpdatePosition();
-        IsOpen = !PlacementRectangle.IsEmpty;
-    }
-
-    public void UpdatePosition()
-    {
-        var currentWord = GetWordAtTextPosition(TargetTextBox?.CaretPosition);
-        PlacementRectangle = currentWord?.Start?.GetCharacterRect(LogicalDirection.Backward) ?? Rect.Empty;
-        FilterList(currentWord?.Text ?? string.Empty);
-    }
-
-    public ObservableCollection<string> Suggestions { get; } = new ObservableCollection<string>();
-
-    public void FilterList(string word)
-    {
-        Suggestions.Clear();
-        foreach (var filtered in AllItems.Where(item => item.Contains(word, System.StringComparison.InvariantCultureIgnoreCase)).Take(25))
-        {
-            Suggestions.Add(filtered);
-        }
-        if (!Suggestions.Contains(List.SelectedItem))
-        {
-            List.SelectedIndex = 0;
-        }
-    }
-
-    public List<string> AllItems { get; } = new List<string>();
-
-    public void Cancel()
-    {
-        _isNavigating = false;
-        IsOpen = false;
-        List.SelectedIndex = 0;
-        TargetTextBox?.Focus();
-    }
-
     private static TextRange? GetWordAtTextPosition(TextPointer? caret)
     {
         if (caret is null)
@@ -248,7 +247,7 @@ public partial class SuggestionBox : Popup
     {
         if (caret.GetLineStartPosition((int)direction) is not { } lineEnd)
             return caret;
-        Debug.Assert(caret.IsAtInsertionPosition);
+
         var wordEdge = caret;
         char[] textbuffer = new char[1];
         while (true)

@@ -1,6 +1,5 @@
 ﻿using ShaderIDE.Data;
 using System;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
@@ -25,13 +24,7 @@ public class SyntaxTextBox : RichTextBox
 
     public static readonly DependencyProperty ColorSchemeProperty =
         DependencyProperty.Register(nameof(ColorScheme), typeof(ColorScheme),
-        typeof(SyntaxTextBox), new UIPropertyMetadata(default, new PropertyChangedCallback(colorSchemeChanged)));
-
-    private static void colorSchemeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-        ((SyntaxTextBox)d).ApplySyntaxHighlighting();
-    }
-
+        typeof(SyntaxTextBox), new UIPropertyMetadata(default, new PropertyChangedCallback(ColorSchemeChanged)));
     public ColorScheme ColorScheme
     {
         get => (ColorScheme)GetValue(ColorSchemeProperty);
@@ -45,6 +38,12 @@ public class SyntaxTextBox : RichTextBox
         get => TextRange.Text;
         set => TextRange.Text = value;
     }
+
+    private static void ColorSchemeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        ((SyntaxTextBox)d).ApplySyntaxHighlighting();
+    }
+
 
     private void SyntaxTextBox_TextChanged(object sender, TextChangedEventArgs e)
     {
@@ -117,7 +116,7 @@ public class SyntaxTextBox : RichTextBox
             if (!Environment.NewLine.Contains(nextChar))
             {
                 offset++;
-            } 
+            }
             else
             {
                 goToEol = false;
@@ -130,14 +129,13 @@ public class SyntaxTextBox : RichTextBox
         if (token.StartsWith("//") || token.StartsWith("#"))
             return TokenType.Comments;
 
-        foreach(var (type, values) in SyntaxMapLoader.OpenGL.Tokens)
+        foreach (var (type, values) in SyntaxMapLoader.OpenGL.Tokens)
         {
             if (values.Contains(token))
                 return type;
         }
         return TokenType.None;
     }
-
 
     private static TextRange GetTextRangeOfToken(TextPointer startPointer, int offset, int characterCount)
     {
@@ -155,7 +153,7 @@ public class SyntaxTextBox : RichTextBox
         }
         return new TextRange(start, end);
     }
-    
+
     private static TextPointer? GetTextPositionAtOffset(TextPointer position, int characterCount)
     {
         while (position != null)
@@ -184,7 +182,7 @@ public class SyntaxTextBox : RichTextBox
 
 public static class KeyEventExtension
 {
-    public static bool ModifierPressed(this KeyboardEventArgs args, ModifierKeys modifierKey) 
+    public static bool ModifierPressed(this KeyboardEventArgs args, ModifierKeys modifierKey)
         => (args.KeyboardDevice.Modifiers & modifierKey) == modifierKey;
 
     public static LogicalDirection Reversed(this LogicalDirection direction)
@@ -193,7 +191,7 @@ public static class KeyEventExtension
     public static bool IsAlphaNumeric(this Key key)
     {
         int keyValue = (int)key;
-        return ((keyValue >= (int)Key.D0 && keyValue <= (int)Key.Z) || 
+        return ((keyValue >= (int)Key.D0 && keyValue <= (int)Key.Z) ||
             (keyValue >= (int)Key.NumPad0 && keyValue <= (int)Key.NumPad9));
     }
 
